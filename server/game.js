@@ -3,6 +3,7 @@ var cardModule = require('./card');
 class Game {
     constructor(name) {
         this.name = name;
+        this.started = false;
     }
 
     start() {
@@ -39,6 +40,8 @@ class Game {
             cards.splice(index, 1);
             ++count;
         }
+
+        this.started = true;
     }
 }
 
