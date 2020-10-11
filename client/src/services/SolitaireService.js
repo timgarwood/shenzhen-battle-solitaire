@@ -1,8 +1,10 @@
 import axios from 'axios';
+import socketIOClient from 'socket.io-client'
 
 export default class SolitaireService {
 
     url = "/api/";
+    socketIoUrl = "http://localhost:9000";
 
     getGamesList(callback) {
         axios.get(this.url + 'list')
@@ -38,5 +40,20 @@ export default class SolitaireService {
                     data: null
                 });
             })
+    }
+
+    joinGame(username, gameName) {
+        let opts = {
+            query: {
+                gameName,
+                username
+            }
+        };
+
+        return socketIOClient(this.socketIoUrl, opts);
+    }
+
+    connectIo() {
+        return socketIOClient(this.socketIoUrl);
     }
 }
