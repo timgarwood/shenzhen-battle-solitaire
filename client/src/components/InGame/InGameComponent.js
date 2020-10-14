@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import SolitaireService from '../../services/SolitaireService';
 import ChatComponent from './Chat/ChatComponent';
+import GameplayComponent from './Gameplay/GameplayComponent';
 
 export default class InGameComponent extends Component {
     constructor() {
@@ -20,10 +21,13 @@ export default class InGameComponent extends Component {
 
     render() {
         return (
-            <ChatComponent gameName={this.props.game.name}
-                username={this.props.username}
-                chatMessageTopic="solitaire.game.chat"
-                socket={this.socket} />
+            <div>
+                <GameplayComponent game={this.props.game} username={this.props.username} socket={this.socket} />
+                <ChatComponent gameName={this.props.game.name}
+                    username={this.props.username}
+                    chatMessageTopic="solitaire.game.chat"
+                    socket={this.socket} />
+            </div>
         );
     }
 }

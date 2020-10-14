@@ -39,7 +39,7 @@ export default class App extends Component {
   }
 
   createGameClicked = (gameName) => {
-    this.service.createGame(gameName, (response) => {
+    this.service.createGame(this.state.username, gameName, (response) => {
       if (response.error) {
         //TODO: replace alert with something better
         alert(`Could not create game ${response.error}`);

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import './ChatComponent.css';
 
 export default class ChatComponent extends Component {
     state = {
@@ -6,6 +7,11 @@ export default class ChatComponent extends Component {
     }
 
     chatMessage = "";
+
+    constructor() {
+        super();
+        this.chatWindowRef = React.createRef();
+    }
 
     componentWillMount() {
         this.props.socket.on(this.props.chatMessageTopic, (chatMessage) => {
@@ -18,7 +24,7 @@ export default class ChatComponent extends Component {
             gameName: this.props.gameName,
             sender: this.props.username,
             messageBody: this.chatMessage,
-            timestamp: Date.now().toString()
+            timestamp: new Date(Date.now()).toUTCString()
         }
 
         this.props.socket.emit(this.props.chatMessageTopic, message)
@@ -31,6 +37,8 @@ export default class ChatComponent extends Component {
         this.setState({
             chatMessages: newMessages
         });
+
+        this.chatWindowRef.current.scrollTop = this.chatWindowRef.current.scrollHeight;
     }
 
     chatMessageChanged = (evt) => {
@@ -40,15 +48,17 @@ export default class ChatComponent extends Component {
     render() {
         let messages = this.state.chatMessages.map(cm => {
             return (
-                <li>{cm.timestamp} {cm.sender}: {cm.messageBody}</li>
+                <li className="chat-message">{cm.timestamp} {cm.sender}: {cm.messageBody}</li>
             );
         });
 
         return (
             <div>
-                <ul>
-                    {messages}
-                </ul>
+                <div ref={this.chatWindowRef} className="chat-window">
+                    <ul className="chat-list">
+                        {messages}
+                    </ul>
+                </div>
                 <input type="text" onChange={this.chatMessageChanged}></input>
                 <button onClick={() => this.submitMessage()}>Chat</button>
             </div>

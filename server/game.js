@@ -1,8 +1,9 @@
 var cardModule = require('./card');
 
 class Game {
-    constructor(name) {
+    constructor(createdBy, name) {
         this.name = name;
+        this.createdBy = createdBy;
         this.started = false;
     }
 
@@ -29,14 +30,12 @@ class Game {
         //pick 5 random cards at a time and add them to the next
         //spot on the board. then remove them from 'cards'
 
-        this.board = [[], [], [], [], [], [], [], []];
-        this.dragonSlots = [null, null, null];
-        this.numberSlots = [[], [], []];
+        this.deck = [[], [], [], [], [], [], [], []];
 
         let count = 0;
         while (cards.length > 0) {
             let index = parseInt(Math.random() * (cards.length - 1));
-            this.board[parseInt(count / 5)].push(cards[index]);
+            this.deck[parseInt(count / 5)].push(cards[index]);
             cards.splice(index, 1);
             ++count;
         }

@@ -22,9 +22,10 @@ export default class SolitaireService {
             });
     }
 
-    createGame(gameName, callback) {
+    createGame(username, gameName, callback) {
         var data = {
-            gameName: gameName
+            gameName,
+            username
         };
 
         axios.post(this.url + 'create', data)

@@ -20,7 +20,7 @@ io.on('connection', (socket) => {
 
         var message = {
             sender: 'System',
-            timestamp: Date.now().toString(),
+            timestamp: new Date(Date.now()).toUTCString(),
             messageBody: `${socket.handshake.query.username} joined.`
         };
 
@@ -32,6 +32,43 @@ io.on('connection', (socket) => {
         io.sockets
             .in(message.gameName)
             .emit('solitaire.game.chat', message);
+    });
+
+    socket.on('solitaire.game.start', (message) => {
+        let index = games.findIndex(x => x.name === message.gameName);
+        if (index >= 0) {
+            games[index].start();
+
+            let delayMs = 3000;
+            let startingMessage = {
+                gameName: message.gameName,
+                delay: parseInt(delayMs / 1000)
+            };
+
+            io.sockets
+                .in(message.gameName)
+                .emit('solitaire.game.starting', startingMessage);
+
+            let chatMessage = {
+                sender: 'System',
+                timestamp: new Date(Date.now()).toUTCString(),
+                messageBody: `Game will start in ${startingMessage.delay} seconds...`
+            };
+
+            io.sockets
+                .in(message.gameName)
+                .emit('solitaire.game.chat', chatMessage);
+
+            let startedMessage = {
+                game: games[index]
+            }
+
+            setTimeout(() => {
+                io.sockets
+                    .in(message.gameName)
+                    .emit('solitaire.game.started', startedMessage);
+            }, delayMs);
+        }
     });
 });
 
@@ -51,26 +88,12 @@ app.post('/api/create', jsonParser, (request, response) => {
         return;
     }
 
-    let game = new gameModule.Game(request.body.gameName);
+    let game = new gameModule.Game(request.body.username, request.body.gameName);
     games.push(game);
 
     io.emit('solitaire.game.list', games);
 
     response.json(JSON.stringify(game));
-});
-
-app.post('/api/join', jsonParser, (request, response) => {
-    let index = games.findIndex(x => x.name === request.body.gameName);
-    if (index < 0) {
-        response.statusMessage = 'ERR_GAME_NOT_FOUND';
-        response.status(404);
-        response.send();
-        return;
-    }
-
-    //TODO: connect io
-    response.status(200);
-    response.send();
 });
 
 app.post('/api/start', jsonParser, (request, response) => {
