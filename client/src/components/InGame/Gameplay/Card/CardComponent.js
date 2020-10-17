@@ -6,7 +6,7 @@ export default class CardComponent extends Component {
         return (
             <div
                 className="card"
-                style={{ top: this.props.top, left: this.props.left, zIndex: this.props.z }}
+                style={{ top: this.props.top, left: this.props.left, zIndex: this.props.z, pointerEvents: this.props.z == 100 ? "none" : "auto" }}
                 onMouseOver={this.props.onMouseEnter}
                 onMouseOut={this.props.onMouseLeave}
                 onMouseDown={this.props.onMouseDown}
