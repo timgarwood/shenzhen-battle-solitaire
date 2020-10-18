@@ -10,6 +10,7 @@ import red6 from '../../../images/red-6.png';
 import red7 from '../../../images/red-7.png';
 import red8 from '../../../images/red-8.png';
 import red9 from '../../../images/red-9.png';
+import redDragon from '../../../images/red.png';
 
 import green1 from '../../../images/green-1.png';
 import green2 from '../../../images/green-2.png';
@@ -20,6 +21,7 @@ import green6 from '../../../images/green-6.png';
 import green7 from '../../../images/green-7.png';
 import green8 from '../../../images/green-8.png';
 import green9 from '../../../images/green-9.png';
+import greenDragon from '../../../images/green.png';
 
 import black1 from '../../../images/black-1.png';
 import black2 from '../../../images/black-2.png';
@@ -30,6 +32,7 @@ import black6 from '../../../images/black-6.png';
 import black7 from '../../../images/black-7.png';
 import black8 from '../../../images/black-8.png';
 import black9 from '../../../images/black-9.png';
+import blackDragon from '../../../images/black.png';
 
 export default class GameplayComponent extends Component {
     state = {
@@ -45,6 +48,7 @@ export default class GameplayComponent extends Component {
         this.lastMouseY = 0;
 
         this.dropCard = null;
+        this.dropDragon = null;
 
         this.cardImgSources = [];
         this.cardImgSources.push({ name: 'red-1', source: red1 });
@@ -77,47 +81,51 @@ export default class GameplayComponent extends Component {
         this.cardImgSources.push({ name: 'black-8', source: black8 });
         this.cardImgSources.push({ name: 'black-9', source: black9 });
 
+        this.cardImgSources.push({ name: 'red', source: redDragon });
+        this.cardImgSources.push({ name: 'green', source: greenDragon });
+        this.cardImgSources.push({ name: 'black', source: blackDragon });
+
         this.cardWidth = '100px';
         this.cardHeight = '175px';
-        this.slots = [
+        this.dragonSlots = [
             {
                 x: 0,
                 y: 0,
-                type: 'Dragon'
+                cardData: null
             },
             {
                 x: 120,
                 y: 0,
-                type: 'Dragon'
+                cardData: null
             },
             {
                 x: 240,
                 y: 0,
-                type: 'Dragon'
-            },
-            {
-                x: 400,
-                y: 0,
-                type: 'Rose'
-            },
+                cardData: null
+            }
+        ];
+
+        this.roseSlot = {
+            x: 400,
+            y: 0,
+        };
+
+        this.colorSlots = [
             {
                 x: 520,
                 y: 0,
-                type: 'Number'
+                cardDatas: null
             },
             {
                 x: 640,
                 y: 0,
-                type: 'Number'
+                cardDatas: null
             },
             {
                 x: 760,
                 y: 0,
-                type: 'Number'
+                cardDatas: null
             }
-        ]
-
-        this.xPixels = [
         ];
     }
 
@@ -135,23 +143,25 @@ export default class GameplayComponent extends Component {
             color = "black";
         }
 
-        let value = '1';
+        let index = 0;
 
         if (cardData.value) {
-            value = cardData.value;
+            index = this.cardImgSources.findIndex(cis => cis.name === `${color}-${cardData.value}`);
+        } else {
+            index = this.cardImgSources.findIndex(cis => cis.name === `${color}`);
         }
 
-        let index = this.cardImgSources.findIndex(cis => cis.name === `${color}-${value}`);
-
-        if (index < 0) {
-            return red1;
-        }
+        index = index >= 0 ? index : 0;
 
         return this.cardImgSources[index].source;
     }
 
     handleGameStarted = (message) => {
         let newDeck = message.game.deck;
+        for (let i = 0; i < this.dragonSlots.length; ++i) {
+            this.dragonSlots[i].cardData = null;
+        }
+
         for (let left = 0; left < newDeck.length; ++left) {
             let currentLeft = (20 + (left * 150));
             for (let top = 0; top < newDeck[left].length; ++top) {
@@ -203,6 +213,16 @@ export default class GameplayComponent extends Component {
         return true;
     }
 
+    onGameWindowMouseUp = (evt) => {
+        if (this.state.movingCards) {
+            this.returnToOriginalPosition();
+
+            this.setState({
+                movingCards: null
+            });
+        }
+    }
+
     onMouseMove = (evt) => {
         if (this.state.movingCards) {
             let nextMovingCards = [... this.state.movingCards];
@@ -223,7 +243,7 @@ export default class GameplayComponent extends Component {
         this.lastMouseY = evt.pageY;
     }
 
-    onMouseUp = (evt, left, top) => {
+    onCardMouseUp = (evt, left, top) => {
         evt.stopPropagation();
         evt.preventDefault();
 
@@ -237,11 +257,7 @@ export default class GameplayComponent extends Component {
             if (this.dropCard) {
                 let source = [this.dropCard];
                 if (this.validSequence(source, this.state.movingCards)) {
-                    // remove the moving cards from their original position in the deck
-                    // and add them underneath 'dropCard'.
-                    let spliceLeft = topMovingCard.leftIndex;
-                    let spliceTop = topMovingCard.topIndex;
-                    newDeck[spliceLeft].splice(spliceTop, newDeck[spliceLeft].length - spliceTop);
+                    this.removeFromOriginalPosition(newDeck);
 
                     dropY = this.dropCard.y + 30;
                     dropX = this.dropCard.x;
@@ -251,21 +267,29 @@ export default class GameplayComponent extends Component {
                     }
 
                     this.dropCard = null;
+
+                    for (let i = 0; i < this.state.movingCards.length; ++i) {
+                        this.state.movingCards[i].originalDragon = null;
+                        this.state.movingCards[i].x = dropX;
+                        this.state.movingCards[i].y = dropY;
+                        this.state.movingCards[i].z = 0;
+                        dropY += 30;
+                    }
+
+                    this.setState({
+                        deck: newDeck,
+                        movingCards: null
+                    });
+                    return;
                 }
             }
-
-            for (let i = 0; i < this.state.movingCards.length; ++i) {
-                this.state.movingCards[i].x = dropX;
-                this.state.movingCards[i].y = dropY;
-                this.state.movingCards[i].z = 0;
-                dropY += 30;
-            }
-
-            this.setState({
-                deck: newDeck,
-                movingCards: null
-            });
         }
+
+        this.returnToOriginalPosition();
+
+        this.setState({
+            movingCards: null
+        });
     }
 
     onCardEnter = (evt, left, top) => {
@@ -329,21 +353,110 @@ export default class GameplayComponent extends Component {
         }
     }
 
+    onDragonEnter = (evt, dragonSlot) => {
+        if (this.state.movingCards && this.state.movingCards.length == 1) {
+            if (dragonSlot.cardData == null) {
+                this.dropDragon = dragonSlot;
+            }
+        }
+    }
+
+    onDragonLeave = (evt, dragonSlot) => {
+        this.dropDragon = null;
+    }
+
+    onDragonSelected = (evt, dragonSlot) => {
+        if (dragonSlot.cardData) {
+            dragonSlot.cardData.originalDragon = dragonSlot;
+            dragonSlot.cardData.z = 100;
+            this.setState({
+                movingCards: [dragonSlot.cardData]
+            });
+        }
+    }
+
+    onDragonMouseUp = (evt, dragonSlot) => {
+        evt.stopPropagation();
+        evt.preventDefault();
+
+        if (this.state.movingCards) {
+            let newDeck = [...this.state.deck];
+            if (this.dropDragon) {
+                //movingCards should only be valid if dropDragon is set ..
+                this.removeFromOriginalPosition(newDeck);
+
+                this.dropDragon.cardData = this.state.movingCards[0];
+                this.state.movingCards[0].originalDragon = this.dropDragon;
+                this.state.movingCards[0].leftIndex = -1;
+                this.state.movingCards[0].topIndex = -1;
+                this.state.movingCards[0].x = this.dropDragon.x;
+                this.state.movingCards[0].y = this.dropDragon.y;
+                this.dropDragon = null;
+
+                this.setState({
+                    movingCards: null
+                });
+                return;
+            }
+
+            this.returnToOriginalPosition();
+
+            this.setState({
+                movingCards: null
+            });
+        }
+
+        this.dropDragon = null;
+    }
+
+    removeFromOriginalPosition = (newDeck) => {
+        if (this.state.movingCards) {
+            let topMovingCard = this.state.movingCards[0];
+            if (topMovingCard.originalDragon) {
+                topMovingCard.originalDragon.cardData = null;
+                topMovingCard.originalDragon = null;
+            } else {
+                // remove the moving cards from their original position in the deck
+                // and add them underneath 'dropCard'.
+                let spliceLeft = topMovingCard.leftIndex;
+                let spliceTop = topMovingCard.topIndex;
+                newDeck[spliceLeft].splice(spliceTop, newDeck[spliceLeft].length - spliceTop);
+            }
+        }
+    }
+
+    returnToOriginalPosition = () => {
+        if (this.state.movingCards) {
+            let topMoving = this.state.movingCards[0];
+            if (topMoving.originalDragon) {
+                topMoving.x = topMoving.originalDragon.x;
+                topMoving.y = topMoving.originalDragon.y;
+                topMoving.z = 0;
+                topMoving.originalDragon.cardData = topMoving;
+            } else {
+                // it must have come from the deck
+                for (let i = 0; i < this.state.movingCards.length; ++i) {
+                    this.state.movingCards[i].x = topMoving.xOrig;
+                    this.state.movingCards[i].y = topMoving.yOrig + ((i) * 30);
+                    this.state.movingCards[i].z = 0;
+                }
+            }
+        }
+    }
+
 
     render() {
-        let slotDivs = this.slots.map(s => {
+        let dragonSlotDivs = this.dragonSlots.map(s => {
             return (
-                <div className="empty-card-slot"
-                    style={
-                        {
-                            width: this.cardWidth,
-                            height: this.cardHeight,
-                            position: 'absolute',
-                            left: s.x,
-                            top: s.y
-                        }
-                    }>
-                </div>
+                <CardComponent
+                    top={s.y}
+                    left={s.x}
+                    z="0"
+                    imgSrc={s.cardData != null ? this.getImageSource(s.cardData) : null}
+                    onMouseEnter={(evt) => this.onDragonEnter(evt, s)}
+                    onMouseLeave={(evt) => this.onDragonLeave(evt, s)}
+                    onMouseDown={(evt) => this.onDragonSelected(evt, s)}
+                    onMouseUp={(evt) => this.onDragonMouseUp(evt, s)} />
             );
         })
 
@@ -371,12 +484,10 @@ export default class GameplayComponent extends Component {
                             top={this.state.deck[left][top].y}
                             left={this.state.deck[left][top].x}
                             z={this.state.deck[left][top].z}
-                            value={this.state.deck[left][top].value}
-                            color={this.state.deck[left][top].color}
                             onMouseEnter={(evt) => this.onCardEnter(evt, left, top)}
                             onMouseLeave={(evt) => this.onCardLeave(evt, left, top)}
                             onMouseDown={(evt) => this.onCardSelected(evt, left, top)}
-                            onMouseUp={(evt) => this.onMouseUp(evt, left, top)} />
+                            onMouseUp={(evt) => this.onCardMouseUp(evt, left, top)} />
                     ));
                 }
 
@@ -387,8 +498,9 @@ export default class GameplayComponent extends Component {
         return (
             <div>
                 <div className="game-window"
-                    onMouseMove={this.onMouseMove}>
-                    {slotDivs}
+                    onMouseMove={this.onMouseMove}
+                    onMouseUp={this.onGameWindowMouseUp}>
+                    {dragonSlotDivs}
                     {stackDivs}
                 </div>
 
