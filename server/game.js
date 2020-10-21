@@ -34,7 +34,7 @@ class Game {
 
         let count = 0;
         while (cards.length > 0) {
-            let index = parseInt(Math.random() * (cards.length - 1));
+            let index = parseInt(Math.random() * (cards.length));
             this.deck[parseInt(count / 5)].push(cards[index]);
             cards.splice(index, 1);
             ++count;

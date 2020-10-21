@@ -35,6 +35,7 @@ import black9 from '../../../images/black-9.png';
 import blackDragon from '../../../images/black.png';
 
 import rose from '../../../images/rose.png';
+import frozen from '../../../images/frozen.png';
 
 export default class GameplayComponent extends Component {
     state = {
@@ -149,6 +150,27 @@ export default class GameplayComponent extends Component {
             cardData: null
         };
 
+        this.buttonSlots = [
+            {
+                color: 'R',
+                x: 410,
+                y: 0,
+                enabled: false
+            },
+            {
+                color: 'G',
+                x: 410,
+                y: 30,
+                enabled: false
+            },
+            {
+                color: 'B',
+                x: 410,
+                y: 60,
+                enabled: false
+            }
+        ]
+
         this.colorSlots = [
             {
                 x: 770,
@@ -205,6 +227,7 @@ export default class GameplayComponent extends Component {
         let newDeck = message.game.deck;
         for (let i = 0; i < this.dragonSlots.length; ++i) {
             this.dragonSlots[i].cardData = null;
+            this.dragonSlots[i].frozen = false;
         }
 
         for (let i = 0; i < this.colorSlots.length; ++i) {
@@ -217,6 +240,8 @@ export default class GameplayComponent extends Component {
             for (let top = 0; top < newDeck[left].length; ++top) {
                 newDeck[left][top].x = this.deckSlots[left].x;
                 newDeck[left][top].y = this.deckSlots[left].y + (top * 30);
+                newDeck[left][top].leftIndex = left;
+                newDeck[left][top].topIndex = top;
                 newDeck[left][top].z = 0;
             }
         }
@@ -293,6 +318,71 @@ export default class GameplayComponent extends Component {
         this.lastMouseY = evt.pageY;
     }
 
+    getRevealedDragonCards = (color) => {
+        let revealedCards = [];
+        // check all the dragon slots
+        for (let d = 0; d < this.dragonSlots.length; ++d) {
+            if (this.dragonSlots[d].cardData &&
+                !this.dragonSlots[d].cardData.value &&
+                this.dragonSlots[d].cardData.color === color) {
+                revealedCards.push(this.dragonSlots[d].cardData);
+            }
+        }
+
+        // then check all the deck slots
+        for (let left = 0; left < this.state.deck.length; ++left) {
+            let len = this.state.deck[left].length;
+            if (len > 0) {
+                if (!this.state.deck[left][len - 1].value &&
+                    this.state.deck[left][len - 1].color === color) {
+                    revealedCards.push(this.state.deck[left][len - 1]);
+                }
+            }
+        }
+
+        return revealedCards;
+    }
+
+    getDragonCardDestinationCandidates = (color) => {
+        let candidates = [];
+        for (let i = 0; i < this.dragonSlots.length; ++i) {
+            if (!this.dragonSlots[i].frozen &&
+                (!this.dragonSlots[i].cardData || this.dragonSlots[i].cardData.color === color)) {
+                candidates.push(this.dragonSlots[i]);
+            }
+        }
+
+        return candidates;
+    }
+
+    onDragonButtonClicked = (evt, dragonButton) => {
+        let revealedCards = this.getRevealedDragonCards(dragonButton.color);
+        let candidateDestinations = this.getDragonCardDestinationCandidates(dragonButton.color);
+
+        let newDeck = [...this.state.deck];
+        this.removeDragonCards(newDeck, revealedCards);
+
+        candidateDestinations[0].frozen = true;
+
+        this.checkDragonButtons();
+
+        this.setState({
+            deck: newDeck
+        });
+    }
+
+    checkDragonButtons = () => {
+        for (let i = 0; i < this.buttonSlots.length; ++i) {
+            let revealedCards = this.getRevealedDragonCards(this.buttonSlots[i].color);
+            let candidateDestinations = this.getDragonCardDestinationCandidates(this.buttonSlots[i].color);
+            // last check is to ensure that there is at least one open dragon slot
+            // or at least one dragon slot that is using this color
+
+            this.buttonSlots[i].enabled = (revealedCards.length === 4 &&
+                candidateDestinations.length > 0);
+        }
+    }
+
     onCardMouseUp = (evt, left, top) => {
         evt.stopPropagation();
         evt.preventDefault();
@@ -325,6 +415,8 @@ export default class GameplayComponent extends Component {
                         this.state.movingCards[i].z = 0;
                         dropY += 30;
                     }
+
+                    this.checkDragonButtons();
 
                     this.setState({
                         deck: newDeck,
@@ -400,9 +492,11 @@ export default class GameplayComponent extends Component {
     }
 
     onDragonEnter = (evt, dragonSlot) => {
-        if (this.state.movingCards && this.state.movingCards.length == 1) {
-            if (dragonSlot.cardData == null) {
-                this.dropDragon = dragonSlot;
+        if (!dragonSlot.frozen) {
+            if (this.state.movingCards && this.state.movingCards.length == 1) {
+                if (dragonSlot.cardData == null) {
+                    this.dropDragon = dragonSlot;
+                }
             }
         }
     }
@@ -442,6 +536,8 @@ export default class GameplayComponent extends Component {
                 this.state.movingCards[0].y = this.dropDragon.y;
                 this.dropDragon = null;
 
+                this.checkDragonButtons();
+
                 this.setState({
                     movingCards: null
                 });
@@ -466,6 +562,8 @@ export default class GameplayComponent extends Component {
 
                 this.roseSlot.cardData = this.state.movingCards[0];
 
+                this.checkDragonButtons();
+
                 this.setState({
                     deck: newDeck,
                     movingCards: null
@@ -485,6 +583,8 @@ export default class GameplayComponent extends Component {
                     this.removeFromOriginalPosition(newDeck);
 
                     slot.cardData = topMovingCard;
+
+                    this.checkDragonButtons();
 
                     this.setState({
                         deck: newDeck,
@@ -519,6 +619,24 @@ export default class GameplayComponent extends Component {
         }
     }
 
+    removeDragonCards = (newDeck, cards) => {
+        for (let i = 0; i < cards.length; ++i) {
+            if (cards[i].originalDragon) {
+                cards[i].originalDragon.cardData = null;
+                cards[i].originalDragon = null;
+            } else {
+                // remove the moving cards from their original position in the deck
+                // and add them underneath 'dropCard'.
+                let spliceLeft = cards[i].leftIndex;
+                let spliceTop = cards[i].topIndex;
+                newDeck[spliceLeft].splice(spliceTop, 1);
+
+                cards[i].leftIndex = -1;
+                cards[i].topIndex = -1;
+            }
+        }
+    }
+
     returnToOriginalPosition = () => {
         if (this.state.movingCards) {
             let topMoving = this.state.movingCards[0];
@@ -547,7 +665,7 @@ export default class GameplayComponent extends Component {
                     <CardComponent
                         x={s.cardData.x}
                         y={s.cardData.y}
-                        z="1"
+                        z={s.cardData.z}
                         imgSrc={this.getImageSource(s.cardData)}
                         onMouseDown={(evt) => this.onDragonSelected(evt, s)} />
                 );
@@ -560,7 +678,7 @@ export default class GameplayComponent extends Component {
                         y={s.y}
                         z="0"
                         //imgSrc={s.cardData != null ? this.getImageSource(s.cardData) : null}
-                        imgSrc={null}
+                        imgSrc={s.frozen ? frozen : null}
                         onMouseEnter={(evt) => this.onDragonEnter(evt, s)}
                         onMouseLeave={(evt) => this.onDragonLeave(evt, s)}
                         onMouseDown={(evt) => this.onDragonSelected(evt, s)}
@@ -570,6 +688,15 @@ export default class GameplayComponent extends Component {
                 </div>
             );
 
+        });
+
+        let buttonDivs = this.buttonSlots.map(s => {
+            return (
+                <button disabled={!s.enabled}
+                    onClick={(evt) => this.onDragonButtonClicked(evt, s)}
+                    style={{ top: s.y, left: s.x, position: 'absolute' }}
+                >Collapse {s.color}</button>
+            );
         });
 
         let roseSlotDiv = (
@@ -656,6 +783,7 @@ export default class GameplayComponent extends Component {
                     onMouseMove={this.onMouseMove}
                     onMouseUp={this.onGameWindowMouseUp}>
                     {dragonSlotDivs}
+                    {buttonDivs}
                     {roseSlotDiv}
                     {colorSlotDivs}
                     {deckSlotDivs}

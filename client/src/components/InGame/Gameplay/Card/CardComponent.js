@@ -3,6 +3,13 @@ import red1 from '../../../../images/red-1.png';
 
 export default class CardComponent extends Component {
     render() {
+        let imgDiv = null;
+        if (this.props.imgSrc) {
+            imgDiv = (
+                <img src={this.props.imgSrc} />
+            );
+        }
+
         return (
             <div
                 className="card"
@@ -12,7 +19,7 @@ export default class CardComponent extends Component {
                 onMouseDown={this.props.onMouseDown}
                 onMouseUp={this.props.onMouseUp}
             >
-                <img src={this.props.imgSrc} />
+                {imgDiv}
             </div>
         )
     }
