@@ -404,6 +404,8 @@ export default class GameplayComponent extends Component {
 
                     for (let i = 0; i < this.state.movingCards.length; ++i) {
                         newDeck[left].push(this.state.movingCards[i]);
+                        this.state.movingCards[i].leftIndex = left;
+                        this.state.movingCards[i].topIndex = newDeck[left].length - 1;
                     }
 
                     this.dropCard = null;
