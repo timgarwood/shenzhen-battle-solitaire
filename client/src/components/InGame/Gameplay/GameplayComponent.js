@@ -41,7 +41,8 @@ export default class GameplayComponent extends Component {
     state = {
         gameStarted: false,
         deck: [],
-        movingCards: null
+        movingCards: null,
+        gameSolved: false
     }
 
     constructor() {
@@ -246,7 +247,6 @@ export default class GameplayComponent extends Component {
             }
         }
 
-
         this.setState({
             deck: newDeck
         });
@@ -286,6 +286,18 @@ export default class GameplayComponent extends Component {
         }
 
         return true;
+    }
+
+    isSolved = (newDeck) => {
+        let solved = true;
+        for (let i = 0; i < newDeck.length; ++i) {
+            if (newDeck[i].length > 0) {
+                solved = false;
+                break;
+            }
+        }
+
+        return solved;
     }
 
     onGameWindowMouseUp = (evt) => {
@@ -366,8 +378,11 @@ export default class GameplayComponent extends Component {
 
         this.checkDragonButtons();
 
+        let solved = this.isSolved(newDeck);
+
         this.setState({
-            deck: newDeck
+            deck: newDeck,
+            gameSolved: solved
         });
     }
 
@@ -375,8 +390,6 @@ export default class GameplayComponent extends Component {
         for (let i = 0; i < this.buttonSlots.length; ++i) {
             let revealedCards = this.getRevealedDragonCards(this.buttonSlots[i].color);
             let candidateDestinations = this.getDragonCardDestinationCandidates(this.buttonSlots[i].color);
-            // last check is to ensure that there is at least one open dragon slot
-            // or at least one dragon slot that is using this color
 
             this.buttonSlots[i].enabled = (revealedCards.length === 4 &&
                 candidateDestinations.length > 0);
@@ -588,9 +601,12 @@ export default class GameplayComponent extends Component {
 
                     this.checkDragonButtons();
 
+                    let solved = this.isSolved(newDeck);
+
                     this.setState({
                         deck: newDeck,
-                        movingCards: null
+                        movingCards: null,
+                        gameSolved: solved
                     });
 
                     return;
@@ -660,6 +676,11 @@ export default class GameplayComponent extends Component {
 
 
     render() {
+        if (this.state.gameSolved) {
+            return (
+                <h1>You solved it!</h1>
+            );
+        }
         let dragonSlotDivs = this.dragonSlots.map(s => {
             let dragonCardDiv = null;
             if (s.cardData) {
