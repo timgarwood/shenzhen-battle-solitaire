@@ -1,0 +1,15 @@
+.GameListItemComponent {
+    margin-bottom: 5px;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-evenly;
+    list-style: none;
+}
+
+.game-list-item-child {
+    background-color: grey;
+    width: 200px;
+    height: 35px;
+    text-align: center;
+    flex-grow: 1;
+}

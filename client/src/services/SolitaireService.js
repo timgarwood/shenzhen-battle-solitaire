@@ -3,11 +3,11 @@ import socketIOClient from 'socket.io-client'
 
 export default class SolitaireService {
 
-    url = "/api/";
+    url = "/api/game";
     socketIoUrl = "http://localhost:9000";
 
     getGamesList(callback) {
-        axios.get(this.url + 'list')
+        axios.get(this.url + '/list')
             .then(response => {
                 callback({
                     error: null,
@@ -28,7 +28,7 @@ export default class SolitaireService {
             username
         };
 
-        axios.post(this.url + 'create', data)
+        axios.post(this.url, data)
             .then(response => {
                 callback({
                     error: null,
@@ -41,6 +41,21 @@ export default class SolitaireService {
                     data: null
                 });
             })
+    }
+
+    deleteGame(gameName, callback) {
+        axios.delete(this.url, { params: { gameName } })
+            .then(response => {
+                callback({
+                    error: null
+                });
+            })
+            .catch(err => {
+                callback({
+                    error: err,
+                    data: null
+                });
+            });
     }
 
     joinGame(username, gameName) {

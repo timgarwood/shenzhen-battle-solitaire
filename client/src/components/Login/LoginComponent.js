@@ -1,4 +1,8 @@
 import React, { Component } from 'react';
+import Backdrop from '../util/Backdrop/Backdrop';
+import Modal from '../util/Modal/Modal';
+import './LoginComponent.css';
+import '../util/Modal/Modal';
 
 export default class LoginComponent extends Component {
     state = {
@@ -14,9 +18,18 @@ export default class LoginComponent extends Component {
     render() {
         return (
             <div>
-                <input type="text" onChange={this.onInputChange}></input>
-                <button onClick={() => this.props.loggedIn(this.state.loginName)}>Enter</button>
-            </div>
+                <Backdrop show="true" />
+                <Modal>
+                    <div style={{ verticalAlign: "center", textAlign: "center" }}>
+                        <p className="modal-text">
+                            Enter your name:
+                    </p>
+                        <input className="modal-input" type="text" onChange={this.onInputChange}></input>
+                        <p></p>
+                        <button className="modal-button" onClick={() => this.props.loggedIn(this.state.loginName)}>Proceed</button>
+                    </div>
+                </Modal>
+            </div >
         );
     }
 }

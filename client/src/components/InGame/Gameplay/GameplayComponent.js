@@ -39,10 +39,8 @@ import frozen from '../../../images/frozen.png';
 
 export default class GameplayComponent extends Component {
     state = {
-        gameStarted: false,
-        deck: [],
-        movingCards: null,
-        gameSolved: false
+        deck: null,
+        movingCards: null
     }
 
     constructor() {
@@ -95,59 +93,59 @@ export default class GameplayComponent extends Component {
         this.deckSlots = [
             {
                 x: 20,
-                y: 200
+                y: 220
             },
             {
-                x: 170,
-                y: 200
+                x: 150,
+                y: 220
             },
             {
-                x: 320,
-                y: 200
+                x: 280,
+                y: 220
             },
             {
-                x: 470,
-                y: 200
+                x: 410,
+                y: 220
             },
             {
-                x: 620,
-                y: 200
+                x: 540,
+                y: 220
             },
             {
-                x: 770,
-                y: 200
+                x: 670,
+                y: 220
             },
             {
-                x: 920,
-                y: 200
+                x: 800,
+                y: 220
             },
             {
-                x: 1070,
-                y: 200
+                x: 930,
+                y: 220
             },
         ];
 
         this.dragonSlots = [
             {
                 x: 20,
-                y: 0,
+                y: 20,
                 cardData: null
             },
             {
-                x: 170,
-                y: 0,
+                x: 150,
+                y: 20,
                 cardData: null
             },
             {
-                x: 320,
-                y: 0,
+                x: 280,
+                y: 20,
                 cardData: null
             }
         ];
 
         this.roseSlot = {
             x: 550,
-            y: 0,
+            y: 20,
             cardData: null
         };
 
@@ -155,46 +153,40 @@ export default class GameplayComponent extends Component {
             {
                 color: 'R',
                 x: 410,
-                y: 0,
+                y: 20,
                 enabled: false
             },
             {
                 color: 'G',
                 x: 410,
-                y: 30,
+                y: 50,
                 enabled: false
             },
             {
                 color: 'B',
                 x: 410,
-                y: 60,
+                y: 80,
                 enabled: false
             }
         ]
 
         this.colorSlots = [
             {
-                x: 770,
-                y: 0,
+                x: 670,
+                y: 20,
                 cardData: null
             },
             {
-                x: 920,
-                y: 0,
+                x: 800,
+                y: 20,
                 cardData: null
             },
             {
-                x: 1070,
-                y: 0,
+                x: 930,
+                y: 20,
                 cardData: null
             }
         ];
-    }
-
-    componentWillMount() {
-        this.props.socket.on('solitaire.game.started', (message) => {
-            this.handleGameStarted(message);
-        });
     }
 
     getImageSource = (cardData) => {
@@ -224,8 +216,7 @@ export default class GameplayComponent extends Component {
         return this.cardImgSources[index].source;
     }
 
-    handleGameStarted = (message) => {
-        let newDeck = message.game.deck;
+    handleGameStarted = (newDeck) => {
         for (let i = 0; i < this.dragonSlots.length; ++i) {
             this.dragonSlots[i].cardData = null;
             this.dragonSlots[i].frozen = false;
@@ -249,18 +240,6 @@ export default class GameplayComponent extends Component {
 
         this.setState({
             deck: newDeck
-        });
-    }
-
-    startGameClicked = () => {
-        var startMessage = {
-            gameName: this.props.game.name
-        };
-
-        this.props.socket.emit('solitaire.game.start', startMessage);
-
-        this.setState({
-            gameStarted: true
         });
     }
 
@@ -380,10 +359,13 @@ export default class GameplayComponent extends Component {
 
         let solved = this.isSolved(newDeck);
 
-        this.setState({
-            deck: newDeck,
-            gameSolved: solved
-        });
+        if (solved) {
+            this.props.solved();
+        } else {
+            this.setState({
+                deck: newDeck
+            });
+        }
     }
 
     checkDragonButtons = () => {
@@ -447,6 +429,35 @@ export default class GameplayComponent extends Component {
         this.setState({
             movingCards: null
         });
+    }
+
+    onCardDoubleClick = (evt, left, top) => {
+        evt.stopPropagation();
+        evt.preventDefault();
+
+        let card = this.state.deck[left][top];
+        if (card.value) {
+            let colorSlot = this.colorSlots.find(s => s.color === card.color);
+            if ((!colorSlot.cardData && card.value === 1) ||
+                (colorSlot.cardData.value === card.value - 1)) {
+                let newDeck = [...this.state.deck];
+                this.removeFromOriginalPosition(newDeck);
+
+                colorSlot.cardData = card;
+
+                this.checkDragonButtons();
+
+                let solved = this.isSolved(newDeck);
+                if (solved) {
+                    this.props.solved();
+                } else {
+                    this.setState({
+                        deck: newDeck,
+                        movingCards: null
+                    });
+                }
+            }
+        }
     }
 
     onCardEnter = (evt, left, top) => {
@@ -602,13 +613,14 @@ export default class GameplayComponent extends Component {
                     this.checkDragonButtons();
 
                     let solved = this.isSolved(newDeck);
-
-                    this.setState({
-                        deck: newDeck,
-                        movingCards: null,
-                        gameSolved: solved
-                    });
-
+                    if (solved) {
+                        this.props.solved();
+                    } else {
+                        this.setState({
+                            deck: newDeck,
+                            movingCards: null
+                        });
+                    }
                     return;
                 }
             }
@@ -674,13 +686,13 @@ export default class GameplayComponent extends Component {
         }
     }
 
+    componentWillReceiveProps(props) {
+        if (props.deck && !this.state.deck) {
+            this.handleGameStarted(props.deck);
+        }
+    }
 
     render() {
-        if (this.state.gameSolved) {
-            return (
-                <h1>You solved it!</h1>
-            );
-        }
         let dragonSlotDivs = this.dragonSlots.map(s => {
             let dragonCardDiv = null;
             if (s.cardData) {
@@ -753,22 +765,6 @@ export default class GameplayComponent extends Component {
             ));
         }
 
-        let startGameDiv = (
-            <div>
-            </div>
-        );
-
-        let stackDivs = [];
-
-        //if (!this.state.gameStarted &&
-        //    this.props.username === this.props.game.createdBy) {
-        startGameDiv = (
-            <div>
-                <button onClick={this.startGameClicked}>Start Game</button>
-            </div>
-        );
-        //} else
-
         let deckSlotDivs = [];
         for (let i = 0; i < this.deckSlots.length; ++i) {
             deckSlotDivs.push((
@@ -780,6 +776,8 @@ export default class GameplayComponent extends Component {
             ));
         }
 
+        let stackDivs = [];
+
         if (this.state.deck) {
             for (let left = 0; left < this.state.deck.length; ++left) {
                 let stackDiv = [];
@@ -789,10 +787,12 @@ export default class GameplayComponent extends Component {
                             x={this.state.deck[left][top].x}
                             y={this.state.deck[left][top].y}
                             z={this.state.deck[left][top].z}
+                            onDoubleClick={(evt) => this.onCardDoubleClick(evt, left, top)}
                             onMouseEnter={(evt) => this.onCardEnter(evt, left, top)}
                             onMouseLeave={(evt) => this.onCardLeave(evt, left, top)}
                             onMouseDown={(evt) => this.onCardSelected(evt, left, top)}
-                            onMouseUp={(evt) => this.onCardMouseUp(evt, left, top)} />
+                            onMouseUp={(evt) => this.onCardMouseUp(evt, left, top)}
+                        />
                     ));
                 }
                 stackDivs.push(stackDiv);
@@ -801,21 +801,18 @@ export default class GameplayComponent extends Component {
         }
 
         return (
-            <div>
-                <div className="game-window"
-                    onMouseMove={this.onMouseMove}
-                    onMouseUp={this.onGameWindowMouseUp}>
-                    {dragonSlotDivs}
-                    {buttonDivs}
-                    {roseSlotDiv}
-                    {colorSlotDivs}
-                    {deckSlotDivs}
-                    {stackDivs}
-                </div>
+            <div className="game-window"
+                onMouseMove={this.onMouseMove}
+                onMouseUp={this.onGameWindowMouseUp}>
+                {dragonSlotDivs}
+                {buttonDivs}
+                {roseSlotDiv}
+                {colorSlotDivs}
+                {deckSlotDivs}
+                {stackDivs}
+            </div>
 
 
-                {startGameDiv}
-            </div >
         )
     }
 }

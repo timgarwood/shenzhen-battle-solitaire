@@ -5,10 +5,28 @@ class Game {
         this.name = name;
         this.createdBy = createdBy;
         this.started = false;
+        this.users = [];
     }
 
-    start() {
+    delete() {
+
+    }
+
+    addUser(username) {
+        this.users.push({
+            username: username,
+            startTime: null,
+            endTime: null
+        });
+    }
+
+    start(now) {
         let cards = [];
+
+        this.users.forEach(u => {
+            u.startTime = now;
+            u.endTime = null;
+        });
 
         // generate the number cards
         for (let i = 1; i <= 9; ++i) {
@@ -41,6 +59,18 @@ class Game {
         }
 
         this.started = true;
+    }
+
+    solved(username) {
+        let now = Date.now();
+        let index = this.users.findIndex(u => u.username === username);
+        if (index >= 0) {
+            this.users[index].endTime = now;
+        }
+    }
+
+    completedUsers() {
+        return this.users.filter(u => u.endTime);
     }
 }
 

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import '../util/Modal/Modal.css';
 
 export default class CreateGameComponent extends Component {
     state = {
@@ -14,8 +15,17 @@ export default class CreateGameComponent extends Component {
     render() {
         return (
             <div>
-                <input type="text" onChange={this.gameNameChanged}></input>
-                <button onClick={() => this.props.clicked(this.state.gameName)}>Create Game</button>
+                <p className="modal-text">Create a new game</p>
+                <p>
+                    <input className="modal-input" type="text" onChange={this.gameNameChanged}></input>
+                    <button className="modal-button"
+                        style={{ width: "30px", marginLeft: "5px" }}
+                        onClick={(evt) => {
+                            if (this.state.gameName && this.state.gameName !== '') {
+                                this.props.clicked(this.state.gameName);
+                            }
+                        }}>+</button>
+                </p>
             </div>
         )
     }

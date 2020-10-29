@@ -4,6 +4,8 @@ import GameListComponent from './components/GameList/GameListComponent';
 import CreateGameComponent from './components/CreateGame/CreateGameComponent';
 import LoginComponent from './components/Login/LoginComponent';
 import InGameComponent from './components/InGame/InGameComponent';
+import Backdrop from './components/util/Backdrop/Backdrop';
+import Modal from './components/util/Modal/Modal';
 
 export default class App extends Component {
   state = {
@@ -47,10 +49,19 @@ export default class App extends Component {
     });
   }
 
-  joinGameClicked = (gameName) => {
+  joinGameClicked = (game) => {
     this.setState({
-      selectedGame: gameName
+      selectedGame: game
     });
+  }
+
+  deleteGameClicked = (game) => {
+    this.service.deleteGame(game.name, (response) => {
+      if (response.error) {
+        //TODO: replace alert with something better
+        alert(`Could not delete game ${response.error}`);
+      }
+    })
   }
 
   render() {
@@ -61,15 +72,24 @@ export default class App extends Component {
     } else if (!this.state.selectedGame) {
       return (
         <div>
-          <p>Hello, {this.state.username}.</p>
-          <CreateGameComponent clicked={this.createGameClicked} />
-          <GameListComponent games={this.state.gameList} joinClicked={this.joinGameClicked} />
-        </div>
+          <Backdrop show="true" />
+          <Modal>
+            <div style={{ textAlign: "center" }}>
+              <p className="modal-text">Hello, {this.state.username}.</p>
+              <CreateGameComponent clicked={this.createGameClicked} />
+              <GameListComponent games={this.state.gameList}
+                username={this.state.username}
+                joinClicked={this.joinGameClicked}
+                deleteClicked={this.deleteGameClicked} />
+            </div>
+          </Modal>
+        </div >
       );
     } else if (this.state.selectedGame) {
       return (
         <div>
-          <InGameComponent username={this.state.username} game={this.state.selectedGame} />
+          <InGameComponent username={this.state.username}
+            game={this.state.selectedGame} />
         </div>
       )
     }

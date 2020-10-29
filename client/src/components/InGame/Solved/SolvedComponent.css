@@ -1,0 +1,15 @@
+.SolvedComponent {
+    margin-bottom: 5px;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-evenly;
+    list-style: none;
+}
+
+.solved-list-item-child {
+    background-color: grey;
+    width: 150px;
+    height: 35px;
+    text-align: center;
+    flex-grow: 1;
+}

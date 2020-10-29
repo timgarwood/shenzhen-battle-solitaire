@@ -59,8 +59,8 @@ export default class ChatComponent extends Component {
                         {messages}
                     </ul>
                 </div>
-                <input type="text" onChange={this.chatMessageChanged}></input>
-                <button onClick={() => this.submitMessage()}>Chat</button>
+                <input className="chat-textbox" type="text" onChange={this.chatMessageChanged}></input>
+                <button className="chat-button" onClick={() => this.submitMessage()}>Chat</button>
             </div>
         );
     }
