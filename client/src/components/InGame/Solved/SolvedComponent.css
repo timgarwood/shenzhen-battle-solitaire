@@ -1,15 +1,17 @@
-.SolvedComponent {
-    margin-bottom: 5px;
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: space-evenly;
-    list-style: none;
+.solved-list-row-grey {
+    background-color: grey;
+    display: block;
+    width: 100%;
 }
 
-.solved-list-item-child {
-    background-color: grey;
-    width: 150px;
-    height: 35px;
+.solved-list-row-white {
+    background-color: white;
+    display: block;
+    width: 100%;
+}
+
+.solved-list-col {
+    display: inline-block;
+    width: 25%;
     text-align: center;
-    flex-grow: 1;
 }

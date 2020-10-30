@@ -15,7 +15,8 @@ export default class InGameComponent extends Component {
             deck: null,
             gameStarted: false,
             solved: false,
-            usersSolved: null
+            usersSolved: null,
+            startingMessage: null
         };
     }
 
@@ -29,6 +30,10 @@ export default class InGameComponent extends Component {
         this.socket.on('solitaire.game.started', (message) => {
             this.handleGameStarted(message);
         });
+
+        this.socket.on('solitaire.game.starting', (message) => {
+            this.handleGameStarting(message);
+        })
 
     }
 
@@ -45,6 +50,12 @@ export default class InGameComponent extends Component {
         };
 
         this.socket.emit('solitaire.game.solved', message);
+    }
+
+    handleGameStarting = (message) => {
+        this.setState({
+            startingMessage: `The game will start in ${message.delay} seconds`
+        })
     }
 
     handleGameStarted = (message) => {
@@ -91,26 +102,41 @@ export default class InGameComponent extends Component {
         if (!this.state.deck) {
             if (this.props.game.createdBy === this.props.username) {
                 lobbyModal = (
-                    <div>
+                    <div width="100%">
                         <Backdrop show="true" />
                         <Modal>
-                            <p style={{ textAlign: "center" }}>
-                                <button className="modal-button"
-                                    onClick={this.startGameClicked}>Start Game</button>
-                            </p>
-                        </Modal>
+                            {this.state.startingMessage &&
+                                <p style={{ textAlign: "center" }}>
+                                    {this.state.startingMessage}
+                                </p>
+                            }
 
+                            {!this.state.startingMessage &&
+                                <p style={{ textAlign: "center" }}>
+                                    <button className="modal-button"
+                                        onClick={this.startGameClicked}>Start Game</button>
+                                </p>
+                            }
+                        </Modal>
                     </div>
                 )
 
             } else {
                 lobbyModal = (
-                    <div>
+                    <div width="100%">
                         <Backdrop show="true" />
                         <Modal>
-                            <p className="modal-text">Waiting for {this.props.game.createdBy} to start the game.</p>
+                            {this.state.startingMessage &&
+                                <p style={{ textAlign: "center" }}>
+                                    {this.state.startingMessage}
+                                </p>
+                            }
+
+                            {!this.state.startingMessage &&
+                                <p className="modal-text">Waiting for {this.props.game.createdBy} to start the game.</p>
+                            }
                         </Modal>
-                    </div>
+                    </div >
                 )
             }
         }

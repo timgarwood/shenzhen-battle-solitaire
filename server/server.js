@@ -33,12 +33,6 @@ io.on('connection', (socket) => {
         io.sockets
             .in(message.gameName)
             .emit('solitaire.game.chat', message);
-
-        if (message.messageBody === "done") {
-            io.sockets
-                .in(message.gameName)
-                .emit('solitaire.game.usersSolved', { users: games[index].users });
-        }
     });
 
     socket.on('solitaire.game.solved', (message) => {
@@ -92,14 +86,14 @@ handleGameStart = (message) => {
 }
 
 handleGameSolved = (message) => {
-    let index = this.games.findIndex(message.gameName);
+    let index = games.findIndex(message.gameName);
     if (index >= 0) {
         games[index].solved(message.username);
 
         let users = games[index].completedUsers();
 
         io.sockets
-            .in(game.name)
+            .in(games[index].name)
             .emit('solitaire.game.usersSolved', users);
     }
 }
