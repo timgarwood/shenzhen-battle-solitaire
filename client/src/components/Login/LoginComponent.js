@@ -6,12 +6,14 @@ import '../util/Modal/Modal';
 
 export default class LoginComponent extends Component {
     state = {
-        loginName: ""
+        loginName: "",
+        disabled: false
     };
 
     onInputChange = (evt) => {
         this.setState({
-            loginName: evt.target.value
+            loginName: evt.target.value,
+            disabled: evt.target.value.length > 25
         });
     }
 
@@ -25,8 +27,18 @@ export default class LoginComponent extends Component {
                             Enter your name:
                     </p>
                         <input className="modal-input" type="text" onChange={this.onInputChange}></input>
-                        <p></p>
-                        <button className="modal-button" onClick={() => this.props.loggedIn(this.state.loginName)}>Proceed</button>
+                        {this.state.disabled &&
+                            <p style={{ color: "red" }}>
+                                Name cannot exceed 25 characters
+                            </p>
+                        }
+                        {!this.state.disabled &&
+                            <p></p>
+                        }
+                        <button
+                            disabled={this.state.disabled}
+                            className="modal-button"
+                            onClick={() => this.props.loggedIn(this.state.loginName)}>Proceed</button>
                     </div>
                 </Modal>
             </div >

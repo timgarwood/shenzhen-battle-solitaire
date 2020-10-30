@@ -86,7 +86,7 @@ handleGameStart = (message) => {
 }
 
 handleGameSolved = (message) => {
-    let index = games.findIndex(message.gameName);
+    let index = games.findIndex(g => g.name === message.gameName);
     if (index >= 0) {
         games[index].solved(message.username);
 
