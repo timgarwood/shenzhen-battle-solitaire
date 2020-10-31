@@ -5,7 +5,7 @@ var io = require('socket.io')(server);
 var gameModule = require('./game');
 var bodyParser = require('body-parser');
 const path = require('path');
-const port = 9000;
+const port = process.env.PORT || 9000;
 
 var games = [];
 
