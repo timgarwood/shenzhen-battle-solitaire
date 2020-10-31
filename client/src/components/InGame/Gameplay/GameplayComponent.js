@@ -489,7 +489,6 @@ export default class GameplayComponent extends Component {
         tmpSrc.topIndex = top;
         tmpSrc.yOrig = tmpSrc.y;
         tmpSrc.xOrig = tmpSrc.x;
-        tmpSrc.z = 100;
 
         source.push(tmpSrc);
 
@@ -501,13 +500,14 @@ export default class GameplayComponent extends Component {
             tmpDst.topIndex = i;
             tmpDst.yOrig = tmpDst.y;
             tmpDst.xOrig = tmpDst.x;
-            tmpDst.z = 100;
             dest.push(tmpDst);
         }
 
         if (this.validSequence(source, dest)) {
+            source[0].z = 100;
             nextMovingCards.push(source[0]);
             for (let i = 0; i < dest.length; ++i) {
+                dest[i].z = 100;
                 nextMovingCards.push(dest[i]);
             }
 

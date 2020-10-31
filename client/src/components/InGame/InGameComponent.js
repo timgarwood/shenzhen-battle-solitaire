@@ -106,16 +106,23 @@ export default class InGameComponent extends Component {
                         <Backdrop show="true" />
                         <Modal>
                             {this.state.startingMessage &&
-                                <p style={{ textAlign: "center" }}>
-                                    {this.state.startingMessage}
-                                </p>
+                                <div style={{ paddingTop: "15%" }}>
+                                    <p style={{ textAlign: "center" }}>
+                                        {this.state.startingMessage}
+                                    </p>
+                                </div>
                             }
 
                             {!this.state.startingMessage &&
-                                <p style={{ textAlign: "center" }}>
-                                    <button className="modal-button"
-                                        onClick={this.startGameClicked}>Start Game</button>
-                                </p>
+                                <div style={{ paddingTop: "15%" }}>
+                                    <p style={{ textAlign: "center" }}>
+                                        You are the game host.  Click below to start the game.
+                                    </p>
+                                    <p style={{ textAlign: "center" }}>
+                                        <button className="modal-button"
+                                            onClick={this.startGameClicked}>Start Game</button>
+                                    </p>
+                                </div>
                             }
                         </Modal>
                     </div>
@@ -127,13 +134,17 @@ export default class InGameComponent extends Component {
                         <Backdrop show="true" />
                         <Modal>
                             {this.state.startingMessage &&
-                                <p style={{ textAlign: "center" }}>
-                                    {this.state.startingMessage}
-                                </p>
+                                <div style={{ paddingTop: "15%" }}>
+                                    <p style={{ textAlign: "center" }}>
+                                        {this.state.startingMessage}
+                                    </p>
+                                </div>
                             }
 
                             {!this.state.startingMessage &&
-                                <p className="modal-text">Waiting for {this.props.game.createdBy} to start the game.</p>
+                                <div style={{ paddingTop: "15%" }}>
+                                    <p className="modal-text">Waiting for {this.props.game.createdBy} to start the game.</p>
+                                </div>
                             }
                         </Modal>
                     </div >

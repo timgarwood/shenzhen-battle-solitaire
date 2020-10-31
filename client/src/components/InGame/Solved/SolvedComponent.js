@@ -5,11 +5,32 @@ import Modal from '../../util/Modal/Modal';
 export default class SolvedComponent extends Component {
     render() {
         let comps = this.props.usersSolved.map((u, i, obj) => {
+            let startDate = new Date(u.startTime);
+            let startText = startDate.toUTCString();
+
+            let endDate = null;
             let endText = null;
             let diffText = null;
             if (u.endTime) {
-                endText = u.endTime
-                diffText = u.endTime - u.startTime;
+                endDate = new Date(u.endTime);
+                endText = endDate.toUTCString();
+
+                let ms = endDate - startDate;
+
+                let hours = ms / (1000 * 60 * 60);
+                let mins = (hours - Math.floor(hours)) * 60;
+                hours = Math.floor(hours);
+
+                let secs = (mins - Math.floor(mins)) * 60;
+                mins = Math.floor(mins);
+
+                ms = (secs - Math.floor(secs)) * 1000;
+
+                secs = Math.floor(secs);
+                ms = Math.floor(ms);
+
+                diffText = `${hours}:${mins}:${secs}.${ms}`;
+
             } else {
                 endText = "has not finished";
                 diffText = "N/A";
@@ -26,7 +47,7 @@ export default class SolvedComponent extends Component {
                         <text className="modal-text">{u.username}</text>
                     </div>
                     <div className="solved-list-col">
-                        <text className="modal-text">{u.startTime}</text>
+                        <text className="modal-text">{startText}</text>
                     </div>
                     <div className="solved-list-col">
                         <text className="modal-text">{endText}</text>
@@ -60,7 +81,7 @@ export default class SolvedComponent extends Component {
                         <text className="modal-text">End</text>
                     </div>
                     <div className="solved-list-col">
-                        <text className="modal-text">Elapsed</text>
+                        <text className="modal-text">Elapsed (hh:mm:ss.ms)</text>
                     </div>
                 </div>
                 {comps}
