@@ -94,7 +94,7 @@ handleGameSolved = (message) => {
 
         io.sockets
             .in(games[index].name)
-            .emit('solitaire.game.usersSolved', users);
+            .emit('solitaire.game.usersSolved', { users });
     }
 }
 
