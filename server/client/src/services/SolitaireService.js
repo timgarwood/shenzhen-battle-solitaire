@@ -4,7 +4,9 @@ import socketIOClient from 'socket.io-client'
 export default class SolitaireService {
 
     url = "/api/game";
-    socketIoUrl = "http://localhost:9000";
+    constructor() {
+        this.socketIoUrl = window.location.origin;
+    }
 
     getGamesList(callback) {
         axios.get(this.url + '/list')

@@ -4,6 +4,7 @@ var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var gameModule = require('./game');
 var bodyParser = require('body-parser');
+const path = require('path');
 const port = 9000;
 
 var games = [];
@@ -147,6 +148,15 @@ app.delete('/api/game', jsonParser, (request, response) => {
 });
 
 app.use(express.json());
+
+//if (process.env.NODE_ENV === 'production') {
+// Serve any static files
+app.use(express.static(path.join(__dirname, 'client/build')));
+// Handle React routing, return all requests to React app
+app.get('*', function (req, res) {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+});
+//}
 
 server.listen(port, () => {
     console.log(`app now listening on ${port}`);
