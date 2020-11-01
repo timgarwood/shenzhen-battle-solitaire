@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import red1 from '../../../../images/red-1.png';
+import './CardComponent.css';
 
 export default class CardComponent extends Component {
     render() {
