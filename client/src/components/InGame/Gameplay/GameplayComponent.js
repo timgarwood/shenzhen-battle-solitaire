@@ -335,14 +335,8 @@ export default class GameplayComponent extends Component {
     }
 
     getDragonCardDestinationCandidates = (color) => {
-        let candidates = [];
-        for (let i = 0; i < this.dragonSlots.length; ++i) {
-            if (!this.dragonSlots[i].frozen &&
-                (!this.dragonSlots[i].cardData || this.dragonSlots[i].cardData.color === color)) {
-                candidates.push(this.dragonSlots[i]);
-            }
-        }
-
+        let candidates = this.dragonSlots
+            .filter(ds => !ds.frozen && (!ds.cardData || ds.cardData.color === color));
         return candidates;
     }
 
@@ -355,6 +349,7 @@ export default class GameplayComponent extends Component {
 
         candidateDestinations[0].frozen = true;
 
+        //TODO: call PostMoveLogic here
         this.checkDragonButtons();
 
         let solved = this.isSolved(newDeck);
@@ -375,6 +370,113 @@ export default class GameplayComponent extends Component {
 
             this.buttonSlots[i].enabled = (revealedCards.length === 4 &&
                 candidateDestinations.length > 0);
+        }
+    }
+
+    findNumberCards = (newDeck, value) => {
+        let numberCards = [];
+        for (let left = 0; left < newDeck.length; ++left) {
+            for (let top = 0; top < newDeck[left].length; ++top) {
+                if (newDeck[left][top].value === value) {
+                    numberCards.push(newDeck[left][top]);
+                }
+            }
+        }
+
+        this.dragonSlots.forEach(ds => {
+            if (ds.cardData && ds.cardData.value) {
+                numberCards.push(ds.cardData);
+            }
+        });
+
+        return numberCards;
+    }
+
+    findTopCards = (newDeck) => {
+        let topCards = [];
+        for (let left = 0; left < newDeck.length; ++left) {
+            if (newDeck[left].length > 0) {
+                topCards.push(newDeck[left][newDeck[left].length - 1]);
+            }
+        }
+
+        this.dragonSlots.forEach(ds => {
+            if (ds.cardData) {
+                topCards.push(ds.cardData);
+            }
+        });
+
+        return topCards;
+    }
+
+    canBeAutoMoved = (cardData) => {
+        let colorSlot = this.colorSlots.find(cs => cs.cardData && cs.cardData.color === cardData.color);
+        return (cardData.value === 1 ||
+            (colorSlot &&
+                colorSlot.cardData &&
+                colorSlot.cardData.value === cardData.value - 1));
+    }
+
+    getAutoMoveCard = (newDeck) => {
+        let cardData = null;
+        for (let left = 0; left < newDeck.length; ++left) {
+            let stack = newDeck[left];
+            if (stack.length > 0) {
+                let topCard = stack[stack.length - 1];
+                if (topCard.value) {
+                    let topCards = this.findTopCards(newDeck);
+                    let matchingCards = this.findNumberCards(newDeck, topCard.value);
+                    if (matchingCards.every(mc => topCards.includes(mc) &&
+                        this.canBeAutoMoved(mc))) {
+                        cardData = matchingCards[0];
+                        let colorSlot = this.colorSlots.find(cs => cs.cardData && cs.cardData.color === cardData.color);
+                        if (!colorSlot) {
+                            colorSlot = this.colorSlots.find(cs => !cs.cardData);
+                        }
+
+                        colorSlot.cardData = cardData;
+                        break;
+                    }
+                } else if (topCard.color === 'X') {
+                    this.roseSlot.cardData = topCard;
+                    cardData = topCard;
+                    break;
+                }
+            }
+        }
+
+        if (cardData) {
+            newDeck[cardData.leftIndex].splice(newDeck[cardData.leftIndex].length - 1, 1);
+        }
+
+        return cardData;
+    }
+
+    autoMoveCompleted = () => {
+        this.postMoveLogic([...this.state.deck]);
+    }
+
+    postMoveLogic = (newDeck) => {
+        let autoMove = this.getAutoMoveCard(newDeck);
+        if (autoMove) {
+            this.setState({
+                deck: newDeck,
+                movingCards: null
+            });
+
+            this.postMoveLogic(newDeck);
+        } else {
+            this.checkDragonButtons();
+
+            let solved = this.isSolved(newDeck);
+            if (solved) {
+                this.props.solved();
+            } else {
+                this.setState({
+                    deck: newDeck,
+                    movingCards: null
+                });
+            }
         }
     }
 
@@ -413,12 +515,8 @@ export default class GameplayComponent extends Component {
                         dropY += 30;
                     }
 
-                    this.checkDragonButtons();
+                    this.postMoveLogic(newDeck);
 
-                    this.setState({
-                        deck: newDeck,
-                        movingCards: null
-                    });
                     return;
                 }
             }
@@ -562,11 +660,8 @@ export default class GameplayComponent extends Component {
                 this.state.movingCards[0].y = this.dropDragon.y;
                 this.dropDragon = null;
 
-                this.checkDragonButtons();
+                this.postMoveLogic(newDeck);
 
-                this.setState({
-                    movingCards: null
-                });
                 return;
             }
 
@@ -610,17 +705,8 @@ export default class GameplayComponent extends Component {
 
                     slot.cardData = topMovingCard;
 
-                    this.checkDragonButtons();
+                    this.postMoveLogic(newDeck);
 
-                    let solved = this.isSolved(newDeck);
-                    if (solved) {
-                        this.props.solved();
-                    } else {
-                        this.setState({
-                            deck: newDeck,
-                            movingCards: null
-                        });
-                    }
                     return;
                 }
             }
@@ -777,6 +863,31 @@ export default class GameplayComponent extends Component {
         }
 
         let stackDivs = [];
+        let autoMove = null;
+
+        /*if (this.state.autoMoveCard) {
+            let colorSlot = this.colorSlots.find(cs => cs.cardData &&
+                cs.cardData.color === this.state.autoMoveCard.color);
+            if (!colorSlot) {
+                colorSlot = this.roseSlot;
+            }
+
+            const styles = {
+                top: this.state.autoMoveCard.y,
+                left: this.state.autoMoveCard.x,
+                transition: 'left 1.5s, top 1.5s, transform 1.5s',
+                transform: `translate(${colorSlot.x}px, ${colorSlot.y}px)`
+            };
+
+            autoMove = (
+                <div onTransitionEnd={() => { this.autoMoveCompleted() }}
+                    style={styles}
+                >
+                    <img src={this.getImageSource(this.state.autoMoveCard)} />
+                </div>
+            )
+        }
+        */
 
         if (this.state.deck) {
             for (let left = 0; left < this.state.deck.length; ++left) {
@@ -810,6 +921,7 @@ export default class GameplayComponent extends Component {
                 {colorSlotDivs}
                 {deckSlotDivs}
                 {stackDivs}
+                {autoMove}
             </div>
 
 
