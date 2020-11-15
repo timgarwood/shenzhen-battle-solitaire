@@ -93,59 +93,59 @@ export default class GameplayComponent extends Component {
         this.deckSlots = [
             {
                 x: 20,
-                y: 220
+                y: 240
             },
             {
                 x: 150,
-                y: 220
+                y: 240
             },
             {
                 x: 280,
-                y: 220
+                y: 240
             },
             {
                 x: 410,
-                y: 220
+                y: 240
             },
             {
                 x: 540,
-                y: 220
+                y: 240
             },
             {
                 x: 670,
-                y: 220
+                y: 240
             },
             {
                 x: 800,
-                y: 220
+                y: 240
             },
             {
                 x: 930,
-                y: 220
+                y: 240
             },
         ];
 
         this.dragonSlots = [
             {
                 x: 20,
-                y: 20,
+                y: 40,
                 cardData: null
             },
             {
                 x: 150,
-                y: 20,
+                y: 40,
                 cardData: null
             },
             {
                 x: 280,
-                y: 20,
+                y: 40,
                 cardData: null
             }
         ];
 
         this.roseSlot = {
             x: 550,
-            y: 20,
+            y: 40,
             cardData: null
         };
 
@@ -153,19 +153,19 @@ export default class GameplayComponent extends Component {
             {
                 color: 'R',
                 x: 410,
-                y: 20,
+                y: 40,
                 enabled: false
             },
             {
                 color: 'G',
                 x: 410,
-                y: 50,
+                y: 70,
                 enabled: false
             },
             {
                 color: 'B',
                 x: 410,
-                y: 80,
+                y: 100,
                 enabled: false
             }
         ]
@@ -173,20 +173,34 @@ export default class GameplayComponent extends Component {
         this.colorSlots = [
             {
                 x: 670,
-                y: 20,
+                y: 40,
                 cardData: null
             },
             {
                 x: 800,
-                y: 20,
+                y: 40,
                 cardData: null
             },
             {
                 x: 930,
-                y: 20,
+                y: 40,
                 cardData: null
             }
         ];
+    }
+
+    copyDeck = (oldDeck) => {
+        let deck = [];
+        for (let i = 0; i < oldDeck.length; ++i) {
+            let stack = [];
+            for (let j = 0; j < oldDeck[i].length; ++j) {
+                stack.push({ ...oldDeck[i][j] });
+            }
+
+            deck.push(stack);
+        }
+
+        return deck;
     }
 
     getImageSource = (cardData) => {
@@ -237,6 +251,8 @@ export default class GameplayComponent extends Component {
                 newDeck[left][top].z = 0;
             }
         }
+
+        this.originalDeck = this.copyDeck(newDeck);
 
         this.setState({
             deck: newDeck
@@ -384,7 +400,7 @@ export default class GameplayComponent extends Component {
         }
 
         this.dragonSlots.forEach(ds => {
-            if (ds.cardData && ds.cardData.value) {
+            if (ds.cardData && (ds.cardData.value === value)) {
                 numberCards.push(ds.cardData);
             }
         });
@@ -772,6 +788,20 @@ export default class GameplayComponent extends Component {
         }
     }
 
+    resetDeck = (evt) => {
+        this.colorSlots.forEach(cs => cs.cardData = null);
+        this.dragonSlots.forEach(cs => {
+            cs.frozen = false;
+            cs.cardData = null
+        });
+
+        this.roseSlot.cardData = null;
+
+        this.setState({
+            deck: this.copyDeck(this.originalDeck)
+        });
+    }
+
     componentWillReceiveProps(props) {
         if (props.deck && !this.state.deck) {
             this.handleGameStarted(props.deck);
@@ -912,16 +942,25 @@ export default class GameplayComponent extends Component {
         }
 
         return (
-            <div className="game-window"
-                onMouseMove={this.onMouseMove}
-                onMouseUp={this.onGameWindowMouseUp}>
-                {dragonSlotDivs}
-                {buttonDivs}
-                {roseSlotDiv}
-                {colorSlotDivs}
-                {deckSlotDivs}
-                {stackDivs}
-                {autoMove}
+            <div className="game-main">
+                <div className="game-controls">
+                    <ul>
+                        <li onClick={this.resetDeck}>
+                            Reset Deck
+                        </li>
+                    </ul>
+                </div>
+                <div className="game-window"
+                    onMouseMove={this.onMouseMove}
+                    onMouseUp={this.onGameWindowMouseUp}>
+                    {dragonSlotDivs}
+                    {buttonDivs}
+                    {roseSlotDiv}
+                    {colorSlotDivs}
+                    {deckSlotDivs}
+                    {stackDivs}
+                    {autoMove}
+                </div>
             </div>
 
 
