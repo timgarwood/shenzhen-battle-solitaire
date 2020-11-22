@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './SolvedComponent.css';
 import Modal from '../../util/Modal/Modal';
+import '../../util/Modal/Modal.css';
 
 export default class SolvedComponent extends Component {
     render() {
@@ -64,6 +65,10 @@ export default class SolvedComponent extends Component {
                 <div style={{ textAlign: "center" }}>
                     <p>
                         You solved it!
+                    </p>
+                    <p>
+                        <button className="modal-button"
+                            onClick={this.props.startGame}>Play Again</button>
                     </p>
                     <p>
                         Current results:

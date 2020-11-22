@@ -37,6 +37,13 @@ import blackDragon from '../../../images/black.png';
 import rose from '../../../images/rose.png';
 import frozen from '../../../images/frozen.png';
 
+import greenButtonDisabled from '../../../images/green-button-disabled.png';
+import greenButtonEnabled from '../../../images/green-button-enabled.png';
+import redButtonDisabled from '../../../images/red-button-disabled.png';
+import redButtonEnabled from '../../../images/red-button-enabled.png';
+import blackButtonDisabled from '../../../images/black-button-disabled.png';
+import blackButtonEnabled from '../../../images/black-button-enabled.png';
+
 export default class GameplayComponent extends Component {
     state = {
         deck: null,
@@ -152,20 +159,20 @@ export default class GameplayComponent extends Component {
         this.buttonSlots = [
             {
                 color: 'R',
-                x: 410,
+                x: 440,
                 y: 40,
                 enabled: false
             },
             {
                 color: 'G',
-                x: 410,
-                y: 70,
+                x: 440,
+                y: 103,
                 enabled: false
             },
             {
                 color: 'B',
-                x: 410,
-                y: 100,
+                x: 440,
+                y: 166,
                 enabled: false
             }
         ]
@@ -228,6 +235,28 @@ export default class GameplayComponent extends Component {
         index = index >= 0 ? index : 0;
 
         return this.cardImgSources[index].source;
+    }
+
+    getDragonButtonImgSrc = (dragonButton) => {
+        if (dragonButton.color === 'R') {
+            if (dragonButton.enabled) {
+                return redButtonEnabled;
+            }
+            return redButtonDisabled;
+        }
+
+        if (dragonButton.color === 'B') {
+            if (dragonButton.enabled) {
+                return blackButtonEnabled;
+            }
+            return blackButtonDisabled;
+        }
+
+        if (dragonButton.enabled) {
+            return greenButtonEnabled;
+        }
+
+        return greenButtonDisabled;
     }
 
     handleGameStarted = (newDeck) => {
@@ -357,25 +386,16 @@ export default class GameplayComponent extends Component {
     }
 
     onDragonButtonClicked = (evt, dragonButton) => {
-        let revealedCards = this.getRevealedDragonCards(dragonButton.color);
-        let candidateDestinations = this.getDragonCardDestinationCandidates(dragonButton.color);
+        if (dragonButton.enabled) {
+            let revealedCards = this.getRevealedDragonCards(dragonButton.color);
+            let candidateDestinations = this.getDragonCardDestinationCandidates(dragonButton.color);
 
-        let newDeck = [...this.state.deck];
-        this.removeDragonCards(newDeck, revealedCards);
+            let newDeck = [...this.state.deck];
+            this.removeDragonCards(newDeck, revealedCards);
 
-        candidateDestinations[0].frozen = true;
+            candidateDestinations[0].frozen = true;
 
-        //TODO: call PostMoveLogic here
-        this.checkDragonButtons();
-
-        let solved = this.isSolved(newDeck);
-
-        if (solved) {
-            this.props.solved();
-        } else {
-            this.setState({
-                deck: newDeck
-            });
+            this.postMoveLogic(newDeck);
         }
     }
 
@@ -543,35 +563,6 @@ export default class GameplayComponent extends Component {
         this.setState({
             movingCards: null
         });
-    }
-
-    onCardDoubleClick = (evt, left, top) => {
-        evt.stopPropagation();
-        evt.preventDefault();
-
-        let card = this.state.deck[left][top];
-        if (card.value) {
-            let colorSlot = this.colorSlots.find(s => s.color === card.color);
-            if ((!colorSlot.cardData && card.value === 1) ||
-                (colorSlot.cardData.value === card.value - 1)) {
-                let newDeck = [...this.state.deck];
-                this.removeFromOriginalPosition(newDeck);
-
-                colorSlot.cardData = card;
-
-                this.checkDragonButtons();
-
-                let solved = this.isSolved(newDeck);
-                if (solved) {
-                    this.props.solved();
-                } else {
-                    this.setState({
-                        deck: newDeck,
-                        movingCards: null
-                    });
-                }
-            }
-        }
     }
 
     onCardEnter = (evt, left, top) => {
@@ -803,7 +794,7 @@ export default class GameplayComponent extends Component {
     }
 
     componentWillReceiveProps(props) {
-        if (props.deck && !this.state.deck) {
+        if (props.deck) {
             this.handleGameStarted(props.deck);
         }
     }
@@ -843,10 +834,9 @@ export default class GameplayComponent extends Component {
 
         let buttonDivs = this.buttonSlots.map(s => {
             return (
-                <button disabled={!s.enabled}
+                <img src={this.getDragonButtonImgSrc(s)}
                     onClick={(evt) => this.onDragonButtonClicked(evt, s)}
-                    style={{ top: s.y, left: s.x, position: 'absolute' }}
-                >Collapse {s.color}</button>
+                    style={{ top: s.y, left: s.x, position: 'absolute' }}></img>
             );
         });
 
@@ -928,7 +918,6 @@ export default class GameplayComponent extends Component {
                             x={this.state.deck[left][top].x}
                             y={this.state.deck[left][top].y}
                             z={this.state.deck[left][top].z}
-                            onDoubleClick={(evt) => this.onCardDoubleClick(evt, left, top)}
                             onMouseEnter={(evt) => this.onCardEnter(evt, left, top)}
                             onMouseLeave={(evt) => this.onCardLeave(evt, left, top)}
                             onMouseDown={(evt) => this.onCardSelected(evt, left, top)}

@@ -78,7 +78,10 @@ export default class InGameComponent extends Component {
         this.socket.emit('solitaire.game.start', startMessage);
 
         this.setState({
-            gameStarted: true
+            gameStarted: true,
+            solved: false,
+            deck: null,
+            usersSolved: null,
         });
     }
 
@@ -94,7 +97,9 @@ export default class InGameComponent extends Component {
             let userIndex = this.state.usersSolved.findIndex(u => u.username === this.props.username);
             if (userIndex >= 0) {
                 solvedModal = (
-                    <SolvedComponent usersSolved={this.state.usersSolved}></SolvedComponent>
+                    <SolvedComponent
+                        startGame={this.startGameClicked}
+                        usersSolved={this.state.usersSolved}></SolvedComponent>
                 )
             }
         }

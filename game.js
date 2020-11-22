@@ -20,6 +20,17 @@ class Game {
         });
     }
 
+    removeUser(username) {
+        let index = this.users.findIndex(u => u.username === username);
+        if (index >= 0) {
+            this.users.splice(index, 1);
+        }
+    }
+
+    empty() {
+        return this.users.length <= 0;
+    }
+
     start(now) {
         let cards = [];
 

@@ -15,20 +15,42 @@ io.on('connection', (socket) => {
     socket.emit('solitaire.game.list', games);
 
     let index = games.findIndex(g => g.name === socket.handshake.query.gameName);
+    let gameName = socket.handshake.query.gameName;
+    let username = socket.handshake.query.username;
     if (index >= 0) {
         socket.join(games[index].name);
 
-        games[index].addUser(socket.handshake.query.username);
+        games[index].addUser(username);
 
-        var message = {
+        var joinedMessage = {
             sender: 'System',
             timestamp: new Date(Date.now()).toUTCString(),
-            messageBody: `${socket.handshake.query.username} joined.`
+            messageBody: `${username} joined.`
         };
 
         io.sockets.in(games[index].name)
-            .emit('solitaire.game.chat', message);
+            .emit('solitaire.game.chat', joinedMessage);
     }
+
+    socket.on('disconnect', (reason) => {
+        if (index >= 0) {
+            games[index].removeUser(username);
+
+            if (games[index].empty()) {
+                games[index].delete();
+                games.splice(index, 1);
+            } else {
+                let userLeftMessage = {
+                    sender: 'System',
+                    timestamp: new Date(Date.now()).toUTCString(),
+                    messageBody: `${username} left the game.`
+                }
+                io.sockets
+                    .in(gameName)
+                    .emit('solitaire.game.chat', userLeftMessage);
+            }
+        }
+    });
 
     socket.on('solitaire.game.chat', (message) => {
         io.sockets
