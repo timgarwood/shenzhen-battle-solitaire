@@ -1,27 +1,8 @@
-.game-main {
-    display: flex;
-    flex-flow: column;
-    width: 80%;
-}
-
 .game-window {
     background-color: rgba(5, 24, 1, 0.8);
     flex-grow: 0;
-    width: 100%;
+    width: 80%;
     height: 100vh;
-}
-
-.game-controls {
-    background-color: white;
-    flex-grow: 0;
-    width: 100%;
-    height: 30px;
-}
-
-.game-controls > ul {
-    padding: 3px;
-    margin: 0px;
-    list-style: none;
 }
 
 .empty-card-slot {

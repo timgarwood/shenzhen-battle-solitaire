@@ -260,8 +260,7 @@ export default class GameplayComponent extends Component {
     }
 
     handleGameStarted = (newDeck) => {
-        this.originalDeck = this.copyDeck(newDeck);
-        this.resetDeck(this.originalDeck);
+        this.resetDeck(newDeck);
     }
 
     // determines if adding the given array of cards to 
@@ -893,28 +892,17 @@ export default class GameplayComponent extends Component {
         }
 
         return (
-            <div className="game-main">
-                <div className="game-controls">
-                    <ul>
-                        <li onClick={(evt) => this.resetDeck(this.state.originalDeck)}>
-                            Reset Deck
-                        </li>
-                    </ul>
-                </div>
-                <div className="game-window"
-                    onMouseMove={this.onMouseMove}
-                    onMouseUp={this.onGameWindowMouseUp}>
-                    {dragonSlotDivs}
-                    {buttonDivs}
-                    {roseSlotDiv}
-                    {colorSlotDivs}
-                    {deckSlotDivs}
-                    {stackDivs}
-                    {autoMove}
-                </div>
+            <div className="game-window"
+                onMouseMove={this.onMouseMove}
+                onMouseUp={this.onGameWindowMouseUp}>
+                {dragonSlotDivs}
+                {buttonDivs}
+                {roseSlotDiv}
+                {colorSlotDivs}
+                {deckSlotDivs}
+                {stackDivs}
+                {autoMove}
             </div>
-
-
         )
     }
 }

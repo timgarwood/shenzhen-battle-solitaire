@@ -5,6 +5,7 @@ import GameplayComponent from './Gameplay/GameplayComponent';
 import Backdrop from '../util/Backdrop/Backdrop';
 import Modal from '../util/Modal/Modal';
 import SolvedComponent from '../InGame/Solved/SolvedComponent';
+import "./InGameComponent.css";
 
 export default class InGameComponent extends Component {
     constructor() {
@@ -16,8 +17,23 @@ export default class InGameComponent extends Component {
             gameStarted: false,
             solved: false,
             usersSolved: null,
-            startingMessage: null
+            startingMessage: null,
+            originalDeck: null
         };
+    }
+
+    copyDeck = (oldDeck) => {
+        let deck = [];
+        for (let i = 0; i < oldDeck.length; ++i) {
+            let stack = [];
+            for (let j = 0; j < oldDeck[i].length; ++j) {
+                stack.push({ ...oldDeck[i][j] });
+            }
+
+            deck.push(stack);
+        }
+
+        return deck;
     }
 
     componentWillMount() {
@@ -60,13 +76,20 @@ export default class InGameComponent extends Component {
 
     handleGameStarted = (message) => {
         this.setState({
-            deck: message.game.deck
+            originalDeck: this.copyDeck(message.game.deck),
+            deck: this.copyDeck(message.game.deck)
         })
     }
 
     handleUsersSolved = (message) => {
         this.setState({
             usersSolved: message.users
+        });
+    }
+
+    resetDeck = () => {
+        this.setState({
+            deck: this.copyDeck(this.state.originalDeck)
         });
     }
 
@@ -158,17 +181,31 @@ export default class InGameComponent extends Component {
         }
 
         return (
-            <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "row", alignContent: "stretch" }}>
-                {solvedModal}
-                {lobbyModal}
-                <GameplayComponent game={this.props.game}
-                    deck={this.state.deck}
-                    username={this.props.username}
-                    solved={() => { this.onGameSolved() }} />
-                <ChatComponent gameName={this.props.game.name}
-                    username={this.props.username}
-                    chatMessageTopic="solitaire.game.chat"
-                    socket={this.socket} />
+            <div className="game-main">
+                <div className="game-controls">
+                    <ul>
+                        <li onClick={(evt) => this.resetDeck()}>
+                            Reset Deck
+                        </li>
+                        <li onClick={(evt) => this.startGameClicked()}>
+                            New Deck
+                        </li>
+                    </ul>
+                </div>
+
+
+                <div className="game-components">
+                    {solvedModal}
+                    {lobbyModal}
+                    <GameplayComponent game={this.props.game}
+                        deck={this.state.deck}
+                        username={this.props.username}
+                        solved={() => { this.onGameSolved() }} />
+                    <ChatComponent gameName={this.props.game.name}
+                        username={this.props.username}
+                        chatMessageTopic="solitaire.game.chat"
+                        socket={this.socket} />
+                </div>
             </div>
         );
     }
