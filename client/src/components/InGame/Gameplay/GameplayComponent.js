@@ -196,20 +196,6 @@ export default class GameplayComponent extends Component {
         ];
     }
 
-    copyDeck = (oldDeck) => {
-        let deck = [];
-        for (let i = 0; i < oldDeck.length; ++i) {
-            let stack = [];
-            for (let j = 0; j < oldDeck[i].length; ++j) {
-                stack.push({ ...oldDeck[i][j] });
-            }
-
-            deck.push(stack);
-        }
-
-        return deck;
-    }
-
     getImageSource = (cardData) => {
         if (!cardData) return null;
 
