@@ -760,7 +760,7 @@ export default class GameplayComponent extends Component {
         }
 
         this.setState({
-            deck: this.copyDeck(newDeck)
+            deck: newDeck
         });
     }
 
