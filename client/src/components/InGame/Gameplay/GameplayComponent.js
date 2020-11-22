@@ -260,32 +260,8 @@ export default class GameplayComponent extends Component {
     }
 
     handleGameStarted = (newDeck) => {
-        for (let i = 0; i < this.dragonSlots.length; ++i) {
-            this.dragonSlots[i].cardData = null;
-            this.dragonSlots[i].frozen = false;
-        }
-
-        for (let i = 0; i < this.colorSlots.length; ++i) {
-            this.colorSlots[i].cardData = null;
-        }
-
-        this.roseSlot.cardData = null;
-
-        for (let left = 0; left < newDeck.length; ++left) {
-            for (let top = 0; top < newDeck[left].length; ++top) {
-                newDeck[left][top].x = this.deckSlots[left].x;
-                newDeck[left][top].y = this.deckSlots[left].y + (top * 30);
-                newDeck[left][top].leftIndex = left;
-                newDeck[left][top].topIndex = top;
-                newDeck[left][top].z = 0;
-            }
-        }
-
         this.originalDeck = this.copyDeck(newDeck);
-
-        this.setState({
-            deck: newDeck
-        });
+        this.resetDeck(this.originalDeck);
     }
 
     // determines if adding the given array of cards to 
@@ -618,7 +594,7 @@ export default class GameplayComponent extends Component {
 
             this.setState({
                 movingCards: nextMovingCards
-            })
+            });
         }
     }
 
@@ -779,7 +755,7 @@ export default class GameplayComponent extends Component {
         }
     }
 
-    resetDeck = (evt) => {
+    resetDeck = (newDeck) => {
         this.colorSlots.forEach(cs => cs.cardData = null);
         this.dragonSlots.forEach(cs => {
             cs.frozen = false;
@@ -788,8 +764,18 @@ export default class GameplayComponent extends Component {
 
         this.roseSlot.cardData = null;
 
+        for (let left = 0; left < newDeck.length; ++left) {
+            for (let top = 0; top < newDeck[left].length; ++top) {
+                newDeck[left][top].x = this.deckSlots[left].x;
+                newDeck[left][top].y = this.deckSlots[left].y + (top * 30);
+                newDeck[left][top].leftIndex = left;
+                newDeck[left][top].topIndex = top;
+                newDeck[left][top].z = 0;
+            }
+        }
+
         this.setState({
-            deck: this.copyDeck(this.originalDeck)
+            deck: this.copyDeck(newDeck)
         });
     }
 
@@ -885,30 +871,6 @@ export default class GameplayComponent extends Component {
         let stackDivs = [];
         let autoMove = null;
 
-        /*if (this.state.autoMoveCard) {
-            let colorSlot = this.colorSlots.find(cs => cs.cardData &&
-                cs.cardData.color === this.state.autoMoveCard.color);
-            if (!colorSlot) {
-                colorSlot = this.roseSlot;
-            }
-
-            const styles = {
-                top: this.state.autoMoveCard.y,
-                left: this.state.autoMoveCard.x,
-                transition: 'left 1.5s, top 1.5s, transform 1.5s',
-                transform: `translate(${colorSlot.x}px, ${colorSlot.y}px)`
-            };
-
-            autoMove = (
-                <div onTransitionEnd={() => { this.autoMoveCompleted() }}
-                    style={styles}
-                >
-                    <img src={this.getImageSource(this.state.autoMoveCard)} />
-                </div>
-            )
-        }
-        */
-
         if (this.state.deck) {
             for (let left = 0; left < this.state.deck.length; ++left) {
                 let stackDiv = [];
@@ -934,7 +896,7 @@ export default class GameplayComponent extends Component {
             <div className="game-main">
                 <div className="game-controls">
                     <ul>
-                        <li onClick={this.resetDeck}>
+                        <li onClick={(evt) => this.resetDeck(this.state.originalDeck)}>
                             Reset Deck
                         </li>
                     </ul>
