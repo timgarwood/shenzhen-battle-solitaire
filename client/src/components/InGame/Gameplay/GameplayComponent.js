@@ -765,7 +765,7 @@ export default class GameplayComponent extends Component {
     }
 
     componentWillReceiveProps(props) {
-        if (props.deck) {
+        if (props.isNewDeck) {
             this.handleGameStarted(props.deck);
         }
     }
