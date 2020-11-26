@@ -342,7 +342,8 @@ export default class GameplayComponent extends Component {
 
     getDragonCardDestinationCandidates = (color) => {
         let candidates = this.dragonSlots
-            .filter(ds => !ds.frozen && (!ds.cardData || ds.cardData.color === color));
+            .filter(ds => !ds.frozen &&
+                (!ds.cardData || (ds.cardData.color === color && !ds.cardData.value)));
         return candidates;
     }
 
