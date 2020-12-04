@@ -34,8 +34,16 @@
 }
 
 .instruction {
-    display: inline;
+    display: flex;
     flex-grow: 0;
+}
+
+.instruction-head {
+    flex-grow: 1;
+}
+
+.instruction-detail {
+    flex-grow: 3;
 }
 
 .instruction-card {
@@ -45,7 +53,6 @@
     border-radius: 2px;
     margin-right: 10px;
     margin-left: 10px;
-    flex-grow: 0;
 }
 
 .instruction-detail {

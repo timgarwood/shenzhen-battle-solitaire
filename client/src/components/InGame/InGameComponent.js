@@ -209,33 +209,9 @@ export default class InGameComponent extends Component {
         }
 
         if (this.state.displayingHelp) {
-            instructionsModal = (
+            /*instructionsModal = (
                 <div>
                     <Modal>
-                        <p style={{ textAlign: "center" }}>
-                            How to Play
-                        </p>
-                        <div>
-                            <div className="instruction">
-                                <img className="instruction-card" src={numberCard} />
-                                    Number cards can be placed on:
-                                    <ul style={{ verticalAlign: "top" }}>
-                                    <li>
-                                        Empty spaces
-                                        </li>
-                                    <li>
-                                        Empty Dragon spaces
-                                        </li>
-                                    <li>
-                                        Underneath a number card of a different color and value 1 more than the card you are placing.
-                                        </li>
-                                </ul>
-
-                                <p>
-                                    You can move a single number card or a group of number cards as
-                                    long as they represent a valid sequence.
-                                </p>
-                            </div>
                             <div className="instruction">
                                 <img className="instruction-card" src={dragonCard} />
                                 <text style={{ verticalAlign: "top" }} className="modal-text">
@@ -256,6 +232,57 @@ export default class InGameComponent extends Component {
                                     onClick={this.instructionsCleared}>Close</button>
                             </div>
                         </div>
+                    </Modal>
+                </div>
+            )
+            */
+
+            instructionsModal = (
+                <div>
+                    <Modal>
+                        <p style={{ textAlign: "center" }}>
+                            How to Play
+                        </p>
+                        <p style={{ textAlign: "center" }}>
+                            The goal of the game is to move all of the number cards into the 3 number slots at the top right of the board.
+                            Number cards can only be placed in sequence.  At the start of the game, the number slot is empty, and
+                            only the '1' card can be placed.  When the '1' card is placed, only the '2' card can be placed, and so on.  The game
+                            is completed when all of the '9' cards are placed.
+                        </p>
+                        <div className="instruction">
+                            <div className="instruction-head">
+                                <img className="instruction-card" src={numberCard} />
+                            </div>
+                            <div className="instruction-detail">
+                                You can move a number card onto an empty space, a dragon space, or underneath another number card
+                                as long as it forms a valid sequence (a different color, and sequential numbers).  You can also
+                                move a group of number cards as long as the group forms a valid sequence.
+                            </div>
+                        </div>
+                        <div className="instruction">
+                            <div className="instruction-head">
+                                <img className="instruction-card" src={dragonCard} />
+                            </div>
+                            <div className="instruction-detail">
+                                Dragon cards can be placed on empty spaces or empty dragon spaces. When all 4 dragon cards of a color
+                                are uncovered, the corresponding dragon button will light up.  Clicking the button will stack the uncovered dragon
+                                cards onto a single space.  That space will be marked with a X and cannot be used again.
+                            </div>
+                        </div>
+                        <div className="instruction">
+                            <div className="instruction-head">
+                                <img className="instruction-card" src={roseCard} />
+                            </div>
+                            <div className="instruction-detail">
+                                The rose card is a freebie.  When the rose card is uncovered, it can be automatically
+                                placed in the rose space.
+                            </div>
+                        </div>
+                        <div style={{ textAlign: "center" }} className="instruction">
+                            <button className="modal-button"
+                                onClick={this.instructionsCleared}>Close</button>
+                        </div>
+
                     </Modal>
                 </div>
             )
