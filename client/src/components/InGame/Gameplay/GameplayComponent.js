@@ -766,9 +766,22 @@ export default class GameplayComponent extends Component {
     }
 
     componentWillReceiveProps(props) {
-        if (props.isNewDeck) {
-            this.handleGameStarted(props.deck);
+        if (!this.lastProps) {
+            this.lastProps = props;
         }
+
+        // if the network drops out and comes back
+        // then we will receive an old copy of props
+        // if it's old, we don't want to start the game again
+        if (props.timestamp > this.lastProps.timestamp ||
+            (props.timestamp == this.lastProps.timestamp &&
+                props.isNewDeck != this.lastProps.isNewDeck)) {
+            if (props.isNewDeck) {
+                this.handleGameStarted(props.deck);
+            }
+        }
+
+        this.lastProps = props;
     }
 
     render() {

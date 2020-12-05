@@ -23,7 +23,8 @@ export default class InGameComponent extends Component {
             usersSolved: null,
             startingMessage: null,
             originalDeck: null,
-            displayingHelp: false
+            displayingHelp: false,
+            timestamp: Date.now()
         };
     }
 
@@ -41,7 +42,16 @@ export default class InGameComponent extends Component {
         return deck;
     }
 
+    closeSocket = () => {
+        if (this.socket) {
+            this.socket.disconnect();
+            this.socket = null;
+        }
+    }
+
     componentWillMount() {
+        window.addEventListener('unload', this.closeSocket);
+
         this.socket = this.service.joinGame(this.props.username, this.props.game.name);
 
         this.socket.on('solitaire.game.usersSolved', (message) => {
@@ -59,9 +69,7 @@ export default class InGameComponent extends Component {
     }
 
     componentWillUnmount() {
-        if (this.socket) {
-            this.socket.disconnect();
-        }
+        this.closeSocket();
     }
 
     onGameSolved = () => {
@@ -83,7 +91,8 @@ export default class InGameComponent extends Component {
         this.setState({
             originalDeck: this.copyDeck(message.game.deck),
             deck: this.copyDeck(message.game.deck),
-            isNewDeck: true
+            isNewDeck: true,
+            timestamp: Date.now()
         })
     }
 
@@ -97,7 +106,8 @@ export default class InGameComponent extends Component {
     resetDeck = () => {
         this.setState({
             deck: this.copyDeck(this.state.originalDeck),
-            isNewDeck: true
+            isNewDeck: true,
+            timestamp: Date.now()
         });
     }
 
@@ -313,6 +323,7 @@ export default class InGameComponent extends Component {
                         deck={this.state.deck}
                         isNewDeck={this.state.isNewDeck}
                         username={this.props.username}
+                        timestamp={this.state.timestamp}
                         solved={() => { this.onGameSolved() }} />
                     <ChatComponent gameName={this.props.game.name}
                         username={this.props.username}

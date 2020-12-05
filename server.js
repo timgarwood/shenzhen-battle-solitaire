@@ -13,6 +13,7 @@ var jsonParser = bodyParser.json();
 
 io.on('connection', (socket) => {
     socket.emit('solitaire.game.list', games);
+    console.log(`user connected`);
 
     let index = games.findIndex(g => g.name === socket.handshake.query.gameName);
     let gameName = socket.handshake.query.gameName;
@@ -33,21 +34,27 @@ io.on('connection', (socket) => {
     }
 
     socket.on('disconnect', (reason) => {
-        if (index >= 0) {
-            games[index].removeUser(username);
+        console.log(`disconnect occurred - ${reason}`);
 
-            if (games[index].empty()) {
-                games[index].delete();
-                games.splice(index, 1);
-            } else {
-                let userLeftMessage = {
-                    sender: 'System',
-                    timestamp: new Date(Date.now()).toUTCString(),
-                    messageBody: `${username} left the game.`
+        // remove the user from the game if they initiated a disconnect event
+        // by calling socket.disconnect()
+        if (reason === 'client namespace disconnect') {
+            if (index >= 0) {
+                games[index].removeUser(username);
+
+                if (games[index].empty()) {
+                    games[index].delete();
+                    games.splice(index, 1);
+                } else {
+                    let userLeftMessage = {
+                        sender: 'System',
+                        timestamp: new Date(Date.now()).toUTCString(),
+                        messageBody: `${username} left the game.`
+                    }
+                    io.sockets
+                        .in(gameName)
+                        .emit('solitaire.game.chat', userLeftMessage);
                 }
-                io.sockets
-                    .in(gameName)
-                    .emit('solitaire.game.chat', userLeftMessage);
             }
         }
     });
