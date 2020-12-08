@@ -219,34 +219,6 @@ export default class InGameComponent extends Component {
         }
 
         if (this.state.displayingHelp) {
-            /*instructionsModal = (
-                <div>
-                    <Modal>
-                            <div className="instruction">
-                                <img className="instruction-card" src={dragonCard} />
-                                <text style={{ verticalAlign: "top" }} className="modal-text">
-                                    Dragon cards can be placed on empty spaces or empty dragon spaces. When all 4 dragon cards of a color
-                                    are uncovered, the button will light up.  Clicking the button will stack the uncovered dragon
-                                    cards onto a single space.  That space will be marked with a X.
-                                </text>
-                            </div>
-                            <div className="instruction">
-                                <img className="instruction-card" src={roseCard} />
-                                <text style={{ verticalAlign: "top" }} className="modal-text">
-                                    The rose card is a freebie.  When the rose card is uncovered, it can be automatically
-                                    placed in the rose space.
-                                </text>
-                            </div>
-                            <div style={{ textAlign: "center" }} className="instruction">
-                                <button className="modal-button"
-                                    onClick={this.instructionsCleared}>Close</button>
-                            </div>
-                        </div>
-                    </Modal>
-                </div>
-            )
-            */
-
             instructionsModal = (
                 <div>
                     <Modal>
@@ -288,7 +260,7 @@ export default class InGameComponent extends Component {
                                 placed in the rose space.
                             </div>
                         </div>
-                        <div style={{ textAlign: "center" }} className="instruction">
+                        <div style={{ textAlign: "center" }}>
                             <button className="modal-button"
                                 onClick={this.instructionsCleared}>Close</button>
                         </div>

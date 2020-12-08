@@ -13,12 +13,13 @@ var jsonParser = bodyParser.json();
 
 io.on('connection', (socket) => {
     socket.emit('solitaire.game.list', games);
-    console.log(`user connected`);
 
     let index = games.findIndex(g => g.name === socket.handshake.query.gameName);
     let gameName = socket.handshake.query.gameName;
     let username = socket.handshake.query.username;
     if (index >= 0) {
+        console.log(`user ${socket.handshake.query.username} connected to game ${socket.handshake.query.gameName}`);
+
         socket.join(games[index].name);
 
         games[index].addUser(username);
