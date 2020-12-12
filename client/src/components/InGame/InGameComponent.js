@@ -24,6 +24,7 @@ export default class InGameComponent extends Component {
             startingMessage: null,
             originalDeck: null,
             displayingHelp: false,
+            socketDisconnectMessage: null,
             timestamp: Date.now()
         };
     }
@@ -66,6 +67,12 @@ export default class InGameComponent extends Component {
             this.handleGameStarting(message);
         })
 
+        this.socket.on('disconnect', (reason) => {
+            if (reason !== 'io client disconnect') {
+                this.handleSocketDisconnect(reason);
+            }
+        })
+
     }
 
     componentWillUnmount() {
@@ -79,6 +86,12 @@ export default class InGameComponent extends Component {
         };
 
         this.socket.emit('solitaire.game.solved', message);
+    }
+
+    handleSocketDisconnect = (reason) => {
+        this.setState({
+            socketDisconnectMessage: reason
+        });
     }
 
     handleGameStarting = (message) => {
@@ -127,6 +140,12 @@ export default class InGameComponent extends Component {
         });
     }
 
+    socketDisconnectModalClosed = (evt) => {
+        this.setState({
+            socketDisconnectMessage: null
+        });
+    }
+
     instructionsClicked = (evt) => {
         this.setState({
             displayingHelp: true,
@@ -152,6 +171,11 @@ export default class InGameComponent extends Component {
             </div>
         )
 
+        let socketDisconnectModal = (
+            <div>
+            </div>
+        )
+
         let solvedModal = (<div></div>);
 
         if (this.state.usersSolved) {
@@ -163,6 +187,24 @@ export default class InGameComponent extends Component {
                         usersSolved={this.state.usersSolved}></SolvedComponent>
                 )
             }
+        }
+
+        if (this.state.socketDisconnectMessage) {
+            socketDisconnectModal = (
+                <div width="100%">
+                    <Backdrop show="true" />
+                    <Modal>
+                        <p style={{ textAlign: "center" }}>
+                            Server connection lost: {this.state.socketDisconnectMessage}
+                        </p>
+                        <div style={{ textAlign: "center" }}>
+                            <button className="modal-button"
+                                onClick={this.socketDisconnectModalClosed}
+                            >Close</button>
+                        </div>
+                    </Modal>
+                </div>
+            )
         }
 
         if (!this.state.deck) {
@@ -291,6 +333,7 @@ export default class InGameComponent extends Component {
                     {solvedModal}
                     {lobbyModal}
                     {instructionsModal}
+                    {socketDisconnectModal}
                     <GameplayComponent game={this.props.game}
                         deck={this.state.deck}
                         isNewDeck={this.state.isNewDeck}
