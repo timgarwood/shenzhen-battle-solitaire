@@ -35,6 +35,7 @@ import black9 from '../../../images/black-9.png';
 import blackDragon from '../../../images/black.png';
 
 import rose from '../../../images/rose.png';
+import roseGhost from '../../../images/rose-ghost.png';
 import frozen from '../../../images/frozen.png';
 
 import greenButtonDisabled from '../../../images/green-button-disabled.png';
@@ -830,7 +831,7 @@ export default class GameplayComponent extends Component {
                 x={this.roseSlot.x}
                 y={this.roseSlot.y}
                 z="0"
-                imgSrc={null}
+                imgSrc={roseGhost}
                 onMouseUp={this.onRoseMouseUp} />
         );
 
