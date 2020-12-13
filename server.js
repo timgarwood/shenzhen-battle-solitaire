@@ -39,8 +39,10 @@ io.on('connection', (socket) => {
 
         // remove the user from the game if they initiated a disconnect event
         // by calling socket.disconnect()
-        if (reason === 'client namespace disconnect') {
+        if (reason === 'client namespace disconnect' ||
+            reason === 'transport error') {
             if (index >= 0) {
+                console.log(`${username} disconnected`);
                 games[index].removeUser(username);
 
                 if (games[index].empty()) {
