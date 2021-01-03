@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './GameplayComponent.css';
 import CardComponent from './Card/CardComponent';
+import { Transition } from 'react-transition-group';
 import red1 from '../../../images/red-1.png';
 import red2 from '../../../images/red-2.png';
 import red3 from '../../../images/red-3.png';
@@ -48,7 +49,8 @@ import blackButtonEnabled from '../../../images/black-button-enabled.png';
 export default class GameplayComponent extends Component {
     state = {
         deck: null,
-        movingCards: null
+        movingCards: null,
+        autoMoveCard: null
     }
 
     constructor() {
@@ -427,32 +429,65 @@ export default class GameplayComponent extends Component {
                     let matchingCards = this.findNumberCards(newDeck, topCard.value);
                     if (matchingCards.every(mc => topCards.includes(mc) &&
                         this.canBeAutoMoved(mc))) {
-                        cardData = matchingCards[0];
-                        let colorSlot = this.colorSlots.find(cs => cs.cardData && cs.cardData.color === cardData.color);
+                        cardData = {
+                            card: matchingCards[0]
+                        };
+
+                        let colorSlot = this.colorSlots.find(cs => cs.cardData && cs.cardData.color === cardData.card.color);
                         if (!colorSlot) {
                             colorSlot = this.colorSlots.find(cs => !cs.cardData);
                         }
 
-                        colorSlot.cardData = cardData;
+                        colorSlot.cardData = cardData.card;
+                        cardData.dest = { x: colorSlot.x, y: colorSlot.y };
                         break;
                     }
                 } else if (topCard.color === 'X') {
                     this.roseSlot.cardData = topCard;
-                    cardData = topCard;
+                    cardData = {
+                        card: topCard,
+                        dest: { x: this.roseSlot.x, y: this.roseSlot.y }
+                    };
                     break;
                 }
             }
         }
 
         if (cardData) {
-            newDeck[cardData.leftIndex].splice(newDeck[cardData.leftIndex].length - 1, 1);
+            newDeck[cardData.card.leftIndex].splice(newDeck[cardData.card.leftIndex].length - 1, 1);
         }
 
         return cardData;
     }
 
-    autoMoveCompleted = () => {
-        this.postMoveLogic([...this.state.deck]);
+    onEnter = (node, isAppearing) => {
+        console.log(' on enter ');
+    }
+
+    onExit = (node) => {
+        console.log(' on exit ');
+    }
+
+    onExiting = (node) => {
+        console.log(' on exiting ');
+    }
+
+    onExited = (node) => {
+        console.log(' on exited ');
+    }
+
+    autoMoveStarted = (node, isAppearing) => {
+        console.log('automove started');
+    }
+
+    autoMoveCompleted = (node, isAppearing) => {
+        const self = this;
+        setTimeout(() => {
+            this.setState({
+                autoMoveCard: null
+            });
+            self.postMoveLogic([...this.state.deck]);
+        }, 200);
     }
 
     postMoveLogic = (newDeck) => {
@@ -460,10 +495,9 @@ export default class GameplayComponent extends Component {
         if (autoMove) {
             this.setState({
                 deck: newDeck,
-                movingCards: null
+                movingCards: null,
+                autoMoveCard: autoMove
             });
-
-            this.postMoveLogic(newDeck);
         } else {
             this.checkDragonButtons();
 
@@ -473,7 +507,8 @@ export default class GameplayComponent extends Component {
             } else {
                 this.setState({
                     deck: newDeck,
-                    movingCards: null
+                    movingCards: null,
+                    autoMoveCard: null
                 });
             }
         }
@@ -762,7 +797,8 @@ export default class GameplayComponent extends Component {
         }
 
         this.setState({
-            deck: newDeck
+            deck: newDeck,
+            autoMoveCard: null
         });
     }
 
@@ -831,8 +867,8 @@ export default class GameplayComponent extends Component {
                 x={this.roseSlot.x}
                 y={this.roseSlot.y}
                 z="0"
-                imgSrc={roseGhost}
-                onMouseUp={this.onRoseMouseUp} />
+                onMouseUp={this.onRoseMouseUp}
+                imgSrc={roseGhost} />
         );
 
         if (this.roseSlot.cardData) {
@@ -852,8 +888,8 @@ export default class GameplayComponent extends Component {
                     x={this.colorSlots[i].x}
                     y={this.colorSlots[i].y}
                     z="0"
-                    imgSrc={this.getImageSource(this.colorSlots[i].cardData)}
-                    onMouseUp={(evt) => this.onColorSlotMouseUp(evt, this.colorSlots[i])} />
+                    onMouseUp={(evt) => this.onColorSlotMouseUp(evt, this.colorSlots[i])}
+                    imgSrc={this.getImageSource(this.colorSlots[i].cardData)} />
             ));
         }
 
@@ -890,6 +926,45 @@ export default class GameplayComponent extends Component {
                 stackDivs.push(stackDiv);
             }
 
+        }
+
+        if (this.state.autoMoveCard) {
+            const duration = 200;
+            const defaultStyle = {
+                transition: `linear`,
+                transitionDuration: `${duration}ms`,
+                position: "absolute",
+                left: `${this.state.autoMoveCard.card.x}px`,
+                top: `${this.state.autoMoveCard.card.y}px`
+            }
+
+            const transitionStyles = {
+                entering: { left: defaultStyle.left, top: defaultStyle.top },
+                entered: { left: `${this.state.autoMoveCard.dest.x}px`, top: `${this.state.autoMoveCard.dest.y}px` }
+            };
+            autoMove = (
+                <Transition in={true}
+                    key={`${this.state.autoMoveCard.color}-${this.state.autoMoveCard.value}`}
+                    appear={true}
+                    exit={false}
+                    onEnter={(node, isAppearing) => { this.onEnter(node, isAppearing); }}
+                    onExit={(node) => { this.onExit(node); }}
+                    onExiting={(node) => { this.onExiting(node); }}
+                    onExited={(node) => { this.onExited(node); }}
+                    onEntering={(node, isAppearing) => { this.autoMoveStarted(node, isAppearing); }}
+                    onEntered={(node, isAppearing) => { this.autoMoveCompleted(node, isAppearing); }}
+                    timeout={{ appear: 0, enter: duration }}
+                >
+                    {state => (
+                        <img
+                            src={this.getImageSource(this.state.autoMoveCard.card)}
+                            style={{
+                                ...defaultStyle,
+                                ...transitionStyles[state]
+                            }} />
+                    )}
+                </Transition>
+            )
         }
 
         return (
