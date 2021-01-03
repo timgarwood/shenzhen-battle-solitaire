@@ -438,15 +438,13 @@ export default class GameplayComponent extends Component {
                             colorSlot = this.colorSlots.find(cs => !cs.cardData);
                         }
 
-                        colorSlot.cardData = cardData.card;
-                        cardData.dest = { x: colorSlot.x, y: colorSlot.y };
+                        cardData.dest = colorSlot;
                         break;
                     }
                 } else if (topCard.color === 'X') {
-                    this.roseSlot.cardData = topCard;
                     cardData = {
                         card: topCard,
-                        dest: { x: this.roseSlot.x, y: this.roseSlot.y }
+                        dest: this.roseSlot
                     };
                     break;
                 }
@@ -460,22 +458,6 @@ export default class GameplayComponent extends Component {
         return cardData;
     }
 
-    onEnter = (node, isAppearing) => {
-        console.log(' on enter ');
-    }
-
-    onExit = (node) => {
-        console.log(' on exit ');
-    }
-
-    onExiting = (node) => {
-        console.log(' on exiting ');
-    }
-
-    onExited = (node) => {
-        console.log(' on exited ');
-    }
-
     autoMoveStarted = (node, isAppearing) => {
         console.log('automove started');
     }
@@ -483,6 +465,7 @@ export default class GameplayComponent extends Component {
     autoMoveCompleted = (node, isAppearing) => {
         const self = this;
         setTimeout(() => {
+            this.state.autoMoveCard.dest.cardData = this.state.autoMoveCard.card;
             this.setState({
                 autoMoveCard: null
             });
@@ -947,10 +930,6 @@ export default class GameplayComponent extends Component {
                     key={`${this.state.autoMoveCard.color}-${this.state.autoMoveCard.value}`}
                     appear={true}
                     exit={false}
-                    onEnter={(node, isAppearing) => { this.onEnter(node, isAppearing); }}
-                    onExit={(node) => { this.onExit(node); }}
-                    onExiting={(node) => { this.onExiting(node); }}
-                    onExited={(node) => { this.onExited(node); }}
                     onEntering={(node, isAppearing) => { this.autoMoveStarted(node, isAppearing); }}
                     onEntered={(node, isAppearing) => { this.autoMoveCompleted(node, isAppearing); }}
                     timeout={{ appear: 0, enter: duration }}
