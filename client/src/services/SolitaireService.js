@@ -17,8 +17,12 @@ export default class SolitaireService {
                 });
             })
             .catch(err => {
+                let errorMessage = null;
+                if (err.response) {
+                    errorMessage = err.response.data;
+                }
                 callback({
-                    error: err,
+                    error: errorMessage,
                     data: null
                 });
             });
@@ -38,8 +42,12 @@ export default class SolitaireService {
                 });
             })
             .catch(err => {
+                let errorMessage = null;
+                if (err.response) {
+                    errorMessage = err.response.data;
+                }
                 callback({
-                    error: err,
+                    error: errorMessage,
                     data: null
                 });
             })
@@ -53,8 +61,12 @@ export default class SolitaireService {
                 });
             })
             .catch(err => {
+                let errorMessage = null;
+                if (err.response) {
+                    errorMessage = err.response.data;
+                }
                 callback({
-                    error: err,
+                    error: errorMessage,
                     data: null
                 });
             });

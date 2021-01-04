@@ -132,18 +132,15 @@ handleGameSolved = (message) => {
 }
 
 app.get('/api/game', jsonParser, (request, response) => {
-    response.status(200);
-    response.json(JSON.stringify(games));
-    response.send();
+    return response.status(200)
+        .send(games);
 })
 
 app.post('/api/game', jsonParser, (request, response) => {
     let index = games.findIndex(x => x.name === request.body.gameName);
     if (index >= 0) {
-        response.statusMessage = 'ERR_GAME_EXISTS';
-        response.status(400);
-        response.send();
-        return;
+        return response.status(400)
+            .send({ err: 'ERR_GAME_EXISTS' });
     }
 
     let game = new gameModule.Game(request.body.username, request.body.gameName);
@@ -157,10 +154,8 @@ app.post('/api/game', jsonParser, (request, response) => {
 app.delete('/api/game', jsonParser, (request, response) => {
     let index = games.findIndex(x => x.name === request.query.gameName);
     if (index < 0) {
-        response.statusMessage = 'ERR_GAME_NOT_FOUND';
-        response.status(400);
-        response.send();
-        return;
+        return response.status(400)
+            .send({ err: 'ERR_GAME_NOT_FOUND' });
     }
 
     let gameName = games[index].name
@@ -175,8 +170,8 @@ app.delete('/api/game', jsonParser, (request, response) => {
 
     io.emit('solitaire.game.list', games);
 
-    response.status(200);
-    response.send();
+    return response.status(200)
+        .send();
 });
 
 app.use(express.json());

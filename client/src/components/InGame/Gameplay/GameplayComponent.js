@@ -458,10 +458,6 @@ export default class GameplayComponent extends Component {
         return cardData;
     }
 
-    autoMoveStarted = (node, isAppearing) => {
-        console.log('automove started');
-    }
-
     autoMoveCompleted = (node, isAppearing) => {
         const self = this;
         setTimeout(() => {
@@ -930,7 +926,6 @@ export default class GameplayComponent extends Component {
                     key={`${this.state.autoMoveCard.color}-${this.state.autoMoveCard.value}`}
                     appear={true}
                     exit={false}
-                    onEntering={(node, isAppearing) => { this.autoMoveStarted(node, isAppearing); }}
                     onEntered={(node, isAppearing) => { this.autoMoveCompleted(node, isAppearing); }}
                     timeout={{ appear: 0, enter: duration }}
                 >

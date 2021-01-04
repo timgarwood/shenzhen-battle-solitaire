@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import SolitaireService from './services/SolitaireService';
+import TranslationService from './services/TranslationService';
 import GameListComponent from './components/GameList/GameListComponent';
 import CreateGameComponent from './components/CreateGame/CreateGameComponent';
 import LoginComponent from './components/Login/LoginComponent';
@@ -11,12 +12,14 @@ export default class App extends Component {
   state = {
     username: null,
     selectedGame: null,
+    apiError: null,
     gameList: []
   }
 
   constructor() {
     super();
     this.service = new SolitaireService();
+    this.translationService = new TranslationService();
   }
 
   componentWillMount() {
@@ -24,7 +27,7 @@ export default class App extends Component {
     this.socket.on('solitaire.game.list', (newGameList) => {
       this.setState({
         gameList: newGameList
-      })
+      });
     });
   }
 
@@ -43,8 +46,13 @@ export default class App extends Component {
   createGameClicked = (gameName) => {
     this.service.createGame(this.state.username, gameName, (response) => {
       if (response.error) {
-        //TODO: replace alert with something better
-        alert(`Could not create game ${response.error}`);
+        this.setState({
+          apiError: response.error.err
+        });
+      } else {
+        this.setState({
+          apiError: null
+        });
       }
     });
   }
@@ -58,8 +66,13 @@ export default class App extends Component {
   deleteGameClicked = (game) => {
     this.service.deleteGame(game.name, (response) => {
       if (response.error) {
-        //TODO: replace alert with something better
-        alert(`Could not delete game ${response.error}`);
+        this.setState({
+          apiError: response.error.err
+        });
+      } else {
+        this.setState({
+          apiError: null
+        });
       }
     })
   }
@@ -70,12 +83,21 @@ export default class App extends Component {
         <LoginComponent loggedIn={this.userLoggedIn} />
       );
     } else if (!this.state.selectedGame) {
+      let apiErrorMessage = null;
+      if (this.state.apiError) {
+        apiErrorMessage = (
+          <p className="modal-text" style={{ color: "red" }}>
+            {this.translationService.translate(this.state.apiError)}
+          </p>
+        );
+      }
       return (
         <div>
           <Backdrop show="true" />
           <Modal>
             <div style={{ textAlign: "center" }}>
               <p className="modal-text">Hello, {this.state.username}.</p>
+              {apiErrorMessage}
               <CreateGameComponent clicked={this.createGameClicked} />
               <GameListComponent games={this.state.gameList}
                 username={this.state.username}
